@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Container,
   IconButton,
@@ -31,7 +31,10 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { signIn } = useContext(AuthContext);
+  let location = useLocation();
+
+  let from = location.state?.from?.pathname || '/';
+  const { signIn, accessToken } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
 
   const LoginSchema: SchemaOf<LoginFormInput> = object({
@@ -39,7 +42,6 @@ export function LoginPage() {
     password: string().required().label('Password'),
   });
 
-  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
   const formik = useFormik<LoginFormInput>({
     initialValues: {
       username: 'trungtm',
@@ -61,7 +63,7 @@ export function LoginPage() {
         const { user, accessToken }: IAuthContextProps = await response.json();
 
         signIn(user, accessToken);
-        navigate('/', { replace: true });
+        navigate(from, { replace: true });
       } catch (error) {
         // TODO: handler error the right way
         alert('Error occurs when login! check console for more details');
@@ -75,6 +77,10 @@ export function LoginPage() {
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
+
+  if (accessToken) {
+    return <Navigate to="/" />;
+  }
   return (
     <Container maxWidth="sm" className="container">
       <ContentStyle>

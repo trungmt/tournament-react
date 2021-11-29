@@ -81,17 +81,17 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
   useEffect(() => {
     if (authState.accessToken === initialAuthState.accessToken) {
       refresh();
-    } else {
-      const interval = setInterval(() => {
-        refresh();
-      }, 5000);
-
-      console.log('start interval', interval);
-      return function cleanup() {
-        console.log('clear interval', interval);
-        clearInterval(interval);
-      };
+      return;
     }
+    const interval = setInterval(() => {
+      refresh();
+    }, 5000);
+
+    console.log('start interval', interval);
+    return function cleanup() {
+      console.log('clear interval', interval);
+      clearInterval(interval);
+    };
   }, [authState.accessToken, refresh]);
 
   const context: IAuthContext = {

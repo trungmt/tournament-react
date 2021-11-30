@@ -1,3 +1,3 @@
-export * from './auth/Register';
-export * from './auth/Login';
+export * from './auth/index';
+export * from './admin/index';
 export * from './Top';

@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import { TopPage, LoginPage, RegisterPage } from './pages/index';
-import RequireAuth from './components/RequireAuth/RequireAuth';
+import { TopPage, LoginPage, RegisterPage, AdminTopPage } from './pages/index';
+import { RequireAuth } from './components/index';
 
 function App() {
   return (
@@ -16,6 +16,15 @@ function App() {
       />
       <Route path="admin/login" element={<LoginPage />} />
       <Route path="register" element={<RegisterPage />} />
+
+      <Route
+        path="/admin"
+        element={
+          <RequireAuth>
+            <AdminTopPage />
+          </RequireAuth>
+        }
+      />
     </Routes>
   );
 }

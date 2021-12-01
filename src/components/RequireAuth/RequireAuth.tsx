@@ -7,7 +7,7 @@ interface RequireAuthProps {
   children: JSX.Element;
 }
 
-export default function RequireAuth({ children }: RequireAuthProps) {
+export function RequireAuth({ children }: RequireAuthProps) {
   const { accessToken, isLogout } = useContext(AuthContext);
   let location = useLocation();
   if (!accessToken && isLogout === true) {

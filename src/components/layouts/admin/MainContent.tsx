@@ -1,1 +1,3 @@
-export function MainContent() {}
+export function MainContent() {
+  return <div>Main </div>;
+}

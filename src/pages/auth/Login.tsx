@@ -34,7 +34,7 @@ export function LoginPage() {
   let location = useLocation();
 
   let from = location.state?.from?.pathname || '/';
-  const { signIn, accessToken } = useContext(AuthContext);
+  const { setAuth, isLogout } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
 
   const LoginSchema: SchemaOf<LoginFormInput> = object({
@@ -49,7 +49,6 @@ export function LoginPage() {
     },
     validationSchema: LoginSchema,
     onSubmit: async values => {
-      // await sleep(5000);
       console.log('values', values);
       try {
         const response = await fetch('http://localhost:3001/auth/login', {
@@ -62,7 +61,7 @@ export function LoginPage() {
         });
         const { user, accessToken }: IAuthContextProps = await response.json();
 
-        signIn(user, accessToken);
+        setAuth(user, accessToken);
         navigate(from, { replace: true });
       } catch (error) {
         // TODO: handler error the right way
@@ -78,9 +77,10 @@ export function LoginPage() {
     setShowPassword(!showPassword);
   };
 
-  if (accessToken) {
-    return <Navigate to="/" />;
+  if (isLogout === false) {
+    return <Navigate to={from} replace />;
   }
+
   return (
     <Container maxWidth="sm" className="container">
       <ContentStyle>

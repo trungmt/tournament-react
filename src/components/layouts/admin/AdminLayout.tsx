@@ -8,10 +8,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <Box flexGrow={1}>
       <MainNavigation />
       <Grid container>
-        <Grid item sm={3}>
+        <Grid item sm={3} md={2}>
           <LeftSideBar />
         </Grid>
-        <Grid item sm={9}>
+        <Grid item sm={9} md={10}>
           {children}
         </Grid>
       </Grid>

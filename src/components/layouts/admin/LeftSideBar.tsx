@@ -12,7 +12,7 @@ const LeftSideBarContainerStyle = styled('div')(({ theme }) => {
     backgroundColor: '#fff',
     border: '1px solid #ece7e7',
     color: '#637381',
-    [theme.breakpoints.down('md')]: {
+    [theme.breakpoints.down('sm')]: {
       color: '#fff',
       backgroundColor: theme.palette.primary.main,
     },

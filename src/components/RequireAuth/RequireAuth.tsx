@@ -1,7 +1,7 @@
-import { CircularProgress, LinearProgress } from '@mui/material';
 import { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/auth-context';
+import FakeProgress from '../ui/FakeProgress';
 
 interface RequireAuthProps {
   children: JSX.Element;
@@ -15,7 +15,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   }
 
   if (!accessToken && isLogout === false) {
-    return <LinearProgress sx={{ margin: '0 auto' }} />;
+    return <FakeProgress />;
   }
 
   return children;

@@ -1,7 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
-  CircularProgress,
   Container,
   IconButton,
   InputAdornment,
@@ -35,7 +34,7 @@ export function LoginPage() {
   let location = useLocation();
 
   let from = location.state?.from?.pathname || '/';
-  const { setAuth, accessToken, isLogout } = useContext(AuthContext);
+  const { setAuth, isLogout } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
 
   const LoginSchema: SchemaOf<LoginFormInput> = object({

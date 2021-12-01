@@ -1,16 +1,21 @@
 import { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../store/auth-context';
+import FakeProgress from '../ui/FakeProgress';
 
 interface RequireAuthProps {
   children: JSX.Element;
 }
 
 export default function RequireAuth({ children }: RequireAuthProps) {
-  const { accessToken } = useContext(AuthContext);
+  const { accessToken, isLogout } = useContext(AuthContext);
   let location = useLocation();
-  if (!accessToken) {
+  if (!accessToken && isLogout === true) {
     return <Navigate to="/admin/login" state={{ from: location }} />;
+  }
+
+  if (!accessToken && isLogout === false) {
+    return <FakeProgress />;
   }
 
   return children;

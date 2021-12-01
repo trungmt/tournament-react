@@ -13,12 +13,13 @@ interface IUser {
   username: string;
 }
 export interface IAuthContextProps {
+  isLogout: boolean;
   user: IUser;
   accessToken: string;
 }
 
 interface IAuthContext extends IAuthContextProps {
-  signIn(user: IUser, accessToken: string): void;
+  setAuth(user: IUser, accessToken: string, isLogout?: boolean): void;
   setAccessToken(accessToken: string): void;
   refresh(): Promise<void>;
 }
@@ -26,12 +27,13 @@ interface IAuthContext extends IAuthContextProps {
 interface AuthContextProviderProps extends PropsWithChildren<{}> {}
 
 const initialAuthState: IAuthContext = {
+  isLogout: false,
   accessToken: '',
   user: {
     name: '',
     username: '',
   },
-  signIn: (user, accessToken) => {},
+  setAuth: (user, accessToken, isLogout) => {},
   setAccessToken: accessToken => {},
   refresh: async () => {},
 };
@@ -39,35 +41,53 @@ const initialAuthState: IAuthContext = {
 const AuthContext = createContext<IAuthContext>(initialAuthState);
 
 export function AuthContextProvider(props: AuthContextProviderProps) {
-  const [authState, setAuthState] = useState<IAuthContext>(initialAuthState);
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  const isLogoutStr = localStorage.getItem('isLogout');
+  let isLogout: boolean = initialAuthState.isLogout;
+  if (isLogoutStr) {
+    isLogout = JSON.parse(isLogoutStr);
+  }
+  const [authState, setAuthState] = useState<IAuthContext>({
+    ...initialAuthState,
+    isLogout,
+  });
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
     try {
+      await sleep(2000);
       const response = await fetch('http://localhost:3001/auth/refresh', {
         method: 'POST',
         credentials: 'include',
       });
 
       if (response.status === 401) {
-        signIn(initialAuthState.user, initialAuthState.accessToken);
+        setAuth(initialAuthState.user, initialAuthState.accessToken, true);
         navigate('/admin/login');
         return;
       }
 
       const { user, accessToken }: IAuthContextProps = await response.json();
       console.log('new token', accessToken);
-      signIn(user, accessToken);
+      setAuth(user, accessToken);
     } catch (error) {
       console.log(typeof error);
     }
   }, [navigate]);
 
-  const signIn = (user: IUser, accessToken: string) => {
+  const setAuth = (
+    user: IUser,
+    accessToken: string,
+    isLogout: boolean = false
+  ) => {
+    localStorage.setItem('isLogout', JSON.stringify(isLogout));
     setAuthState(prevAuthState => ({
       ...prevAuthState,
       user,
       accessToken,
+      isLogout,
     }));
   };
 
@@ -96,7 +116,7 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   const context: IAuthContext = {
     ...authState,
-    signIn,
+    setAuth,
     setAccessToken,
     refresh,
   };

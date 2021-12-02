@@ -20,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Pagination from '@mui/material/Pagination';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AdminLayout } from '../../components';
 import AuthContext from '../../store/auth-context';
@@ -191,11 +192,17 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 function EnhancedTable() {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [lastPage, setLastPage] = useState<number>(1);
+  const [previous, setPrevious] = useState<number | null>(null);
+  const [next, setNext] = useState<number | null>(null);
+  const [rowsPerPage, setRowsPerPage] = useState(1);
   const [rows, setRows] = useState<ITeam[]>([]);
 
   const { accessToken } = useContext(AuthContext);
   const getTeamList = useCallback(async () => {
+    // TODO: add rowsPerPage dropdown
+    // TODO: add FakeProgress when fetching
+    // TODO: it seems dont next next, previous and current in response
     try {
       const rowPerPageQuery = rowsPerPage || '';
       const pageQuery = page || '';
@@ -215,6 +222,9 @@ function EnhancedTable() {
       const paginationData: PaginationResult<ITeam> = await response.json();
       console.log('data', paginationData);
       setRows(paginationData.results);
+      setLastPage(paginationData.lastPage);
+      setPrevious(paginationData.previous);
+      setNext(paginationData.next);
     } catch (error) {
       console.log(error);
     }
@@ -281,53 +291,51 @@ function EnhancedTable() {
           <TableBody>
             {/* if you don't need to support IE11, you can replace the `stableSort` call with:
               rows.slice().sort(getComparator(order, orderBy)) */}
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => {
-                const isItemSelected = isSelected(row.name);
-                const labelId = `enhanced-table-checkbox-${index}`;
+            {rows.map((row, index) => {
+              const isItemSelected = isSelected(row.name);
+              const labelId = `enhanced-table-checkbox-${index}`;
 
-                return (
-                  <TableRow
-                    hover
-                    onClick={event => handleClick(event, row.name)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.name}
-                    selected={isItemSelected}
+              return (
+                <TableRow
+                  hover
+                  onClick={event => handleClick(event, row.name)}
+                  role="checkbox"
+                  aria-checked={isItemSelected}
+                  tabIndex={-1}
+                  key={row.name}
+                  selected={isItemSelected}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      checked={isItemSelected}
+                      inputProps={{
+                        'aria-labelledby': labelId,
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="left">
+                    <img
+                      src={`http://localhost:3001/teams/${row.flagIcon}`}
+                      width="30"
+                      alt={row.name}
+                    />
+                  </TableCell>
+                  <TableCell
+                    id={labelId}
+                    align="left"
+                    scope="row"
+                    padding="none"
                   >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        checked={isItemSelected}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="left">
-                      <img
-                        src={`http://localhost:3001/teams/${row.flagIcon}`}
-                        width="30"
-                        alt={row.name}
-                      />
-                    </TableCell>
-                    <TableCell
-                      id={labelId}
-                      align="left"
-                      scope="row"
-                      padding="none"
-                    >
-                      {row.name}
-                    </TableCell>
+                    {row.name}
+                  </TableCell>
 
-                    <TableCell align="left">{row.shortName}</TableCell>
-                    <TableCell align="left">{row.permalink}</TableCell>
-                  </TableRow>
-                );
-              })}
-            {emptyRows > 0 && (
+                  <TableCell align="left">{row.shortName}</TableCell>
+                  <TableCell align="left">{row.permalink}</TableCell>
+                </TableRow>
+              );
+            })}
+            {/* {emptyRows > 0 && (
               <TableRow
                 style={{
                   height: 53 * emptyRows,
@@ -335,19 +343,22 @@ function EnhancedTable() {
               >
                 <TableCell colSpan={5} />
               </TableRow>
-            )}
+            )} */}
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[2, 3, 5]}
+      {/* <TablePagination
+        rowsPerPageOptions={[1, 2, 5]}
         component="div"
         count={rows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      /> */}
+      {rows.length > 0 ? (
+        <Pagination count={lastPage} page={page} onChange={handleChangePage} />
+      ) : null}
     </Box>
   );
 }

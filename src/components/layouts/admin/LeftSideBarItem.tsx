@@ -1,36 +1,35 @@
-import { Typography } from '@mui/material';
+import { Typography, ListItemButton } from '@mui/material';
 import { blue } from '@mui/material/colors';
 import { styled } from '@mui/system';
+import {
+  Link as RouterLink,
+  LinkProps as RouterLinkProps,
+} from 'react-router-dom';
+import { forwardRef, useMemo } from 'react';
 
-interface LeftSideBarItemProps {
-  component: JSX.Element;
-  text: string;
+export interface LeftSideBarItemProps {
+  icon: JSX.Element;
+  title: string;
+  path: string;
 }
 
 export default function LeftSideBarItem({
-  component,
-  text,
+  icon,
+  title,
+  path,
 }: LeftSideBarItemProps) {
-  const ItemContainerStyle = styled('div')(({ theme }) => {
-    console.log(theme.palette);
-    return {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'self-start',
-      [theme.breakpoints.up('md')]: {
-        cursor: 'pointer',
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(2.5),
-        paddingTop: theme.spacing(2),
-        paddingBottom: theme.spacing(2),
-      },
-      padding: theme.spacing(2),
-      '&:hover': {
-        backgroundColor: blue[50],
-      },
-    };
-  });
+  const renderLink = useMemo(
+    () =>
+      forwardRef<HTMLAnchorElement, Omit<RouterLinkProps, 'to'>>(function Link(
+        itemProps,
+        ref
+      ) {
+        return (
+          <RouterLink to={path} ref={ref} {...itemProps} role={undefined} />
+        );
+      }),
+    [path]
+  );
 
   const ItemTextStyle = styled(Typography)(({ theme }) => ({
     marginLeft: theme.spacing(2),
@@ -41,9 +40,23 @@ export default function LeftSideBarItem({
   }));
 
   return (
-    <ItemContainerStyle>
-      {component}
-      <ItemTextStyle>{text}</ItemTextStyle>
-    </ItemContainerStyle>
+    <ListItemButton
+      component={renderLink}
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'self-start',
+        p: 2,
+        pl: { md: 3 },
+        pr: { md: 2.5 },
+        '&:hover': {
+          backgroundColor: blue[50],
+        },
+      }}
+    >
+      {icon}
+      <ItemTextStyle>{title}</ItemTextStyle>
+    </ListItemButton>
   );
 }

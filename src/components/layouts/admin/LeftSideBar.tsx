@@ -1,8 +1,9 @@
-import { Home } from '@mui/icons-material';
-import LeftSideBarItem from './LeftSideBarItem';
 import { styled } from '@mui/system';
+import { List } from '@mui/material';
+import LeftSideBarItem from './LeftSideBarItem';
+import sidebarConfig from './LeftSideBarConfig';
 
-const LeftSideBarContainerStyle = styled('div')(({ theme }) => {
+const LeftSideBarContainerStyle = styled(List)(({ theme }) => {
   console.log(theme.palette);
   return {
     paddingTop: theme.spacing(8),
@@ -22,17 +23,14 @@ const LeftSideBarContainerStyle = styled('div')(({ theme }) => {
 export function LeftSideBar() {
   return (
     <LeftSideBarContainerStyle>
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Homepage" />
-      <LeftSideBarItem
-        component={<Home fontSize="small" />}
-        text="Tournaments"
-      />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Team" />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Group" />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Homepage" />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Homepage" />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Homepage" />
-      <LeftSideBarItem component={<Home fontSize="small" />} text="Homepage" />
+      {sidebarConfig.map(config => (
+        <LeftSideBarItem
+          key={config.title}
+          icon={config.icon}
+          title={config.title}
+          path={config.path}
+        />
+      ))}
     </LeftSideBarContainerStyle>
   );
 }

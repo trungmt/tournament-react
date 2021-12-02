@@ -7,7 +7,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <Box flexGrow={1}>
       <MainNavigation />
-      <Grid container>
+      <Grid container sx={{ paddingTop: 8 }}>
         <Grid item sm={3} md={2}>
           <LeftSideBar />
         </Grid>

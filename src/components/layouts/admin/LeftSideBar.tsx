@@ -4,9 +4,8 @@ import LeftSideBarItem from './LeftSideBarItem';
 import sidebarConfig from './LeftSideBarConfig';
 
 const LeftSideBarContainerStyle = styled(List)(({ theme }) => {
-  console.log(theme.palette);
   return {
-    paddingTop: theme.spacing(8),
+    // paddingTop: theme.spacing(8),
     height: '100vh',
     paddingLeft: 0,
     paddingRight: 0,

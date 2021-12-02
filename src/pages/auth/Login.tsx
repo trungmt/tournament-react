@@ -49,7 +49,6 @@ export function LoginPage() {
     },
     validationSchema: LoginSchema,
     onSubmit: async values => {
-      console.log('values', values);
       try {
         const response = await fetch('http://localhost:3001/auth/login', {
           method: 'POST',

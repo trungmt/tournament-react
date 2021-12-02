@@ -36,8 +36,8 @@ export function MainNavigation() {
         id="menu-appbar"
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
+          vertical: 'bottom',
+          horizontal: 'right',
         }}
         keepMounted
         transformOrigin={{

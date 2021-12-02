@@ -57,7 +57,6 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   const refresh = useCallback(async () => {
     try {
-      await sleep(2000);
       const response = await fetch('http://localhost:3001/auth/refresh', {
         method: 'POST',
         credentials: 'include',
@@ -100,12 +99,13 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   useEffect(() => {
     if (authState.accessToken === initialAuthState.accessToken) {
+      console.log('trying to get token back');
       refresh();
       return;
     }
     const interval = setInterval(() => {
       refresh();
-    }, 5000);
+    }, 60000);
 
     console.log('start interval', interval);
     return function cleanup() {

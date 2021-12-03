@@ -1,27 +1,21 @@
-import { styled } from '@mui/system';
 import { List } from '@mui/material';
 import LeftSideBarItem from './LeftSideBarItem';
 import sidebarConfig from './LeftSideBarConfig';
 
-const LeftSideBarContainerStyle = styled(List)(({ theme }) => {
-  return {
-    // paddingTop: theme.spacing(8),
-    height: '100vh',
-    paddingLeft: 0,
-    paddingRight: 0,
-    backgroundColor: '#fff',
-    border: '1px solid #ece7e7',
-    color: '#637381',
-    [theme.breakpoints.down('sm')]: {
-      color: '#fff',
-      backgroundColor: theme.palette.primary.main,
-    },
-  };
-});
-
 export function LeftSideBar() {
   return (
-    <LeftSideBarContainerStyle>
+    <List
+      sx={{
+        paddingTop: { xs: 6, sm: 7, md: 8 },
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        px: 0,
+        backgroundColor: { xs: 'primary.main', md: '#fff' },
+        borderRight: '1px solid #ece7e7',
+        color: { xs: '#fff', md: '#637381' },
+      }}
+    >
       {sidebarConfig.map(config => (
         <LeftSideBarItem
           key={config.title}
@@ -30,6 +24,6 @@ export function LeftSideBar() {
           path={config.path}
         />
       ))}
-    </LeftSideBarContainerStyle>
+    </List>
   );
 }

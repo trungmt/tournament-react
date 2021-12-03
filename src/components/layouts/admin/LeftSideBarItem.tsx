@@ -45,7 +45,7 @@ export default function LeftSideBarItem({
       sx={{
         display: 'flex',
         flexDirection: 'row',
-        justifyContent: 'flex-start',
+        justifyContent: { xs: 'center', sm: 'flex-start' },
         alignItems: 'self-start',
         p: 2,
         pl: { md: 3 },

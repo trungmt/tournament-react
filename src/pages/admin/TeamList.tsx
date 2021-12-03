@@ -13,7 +13,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -24,6 +23,9 @@ import Pagination from '@mui/material/Pagination';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AdminLayout } from '../../components';
 import AuthContext from '../../store/auth-context';
+import { Button, Card, Container, Stack } from '@mui/material';
+import { Add } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface ITeam {
   flagIcon: string;
@@ -31,42 +33,6 @@ interface ITeam {
   shortName: string;
   permalink: string;
 }
-
-// const rows: Data[] = [];
-// function createData(
-//   flagIcon: string,
-//   name: string,
-//   shortName: string,
-//   permalink: string
-// ): ITeam {
-//   return {
-//     flagIcon,
-//     name,
-//     shortName,
-//     permalink,
-//   };
-// }
-
-// const rows = [
-//   createData(
-//     'https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Flag_of_England.svg/1200px-Flag_of_England.svg.png',
-//     'England',
-//     'ENG',
-//     'endland'
-//   ),
-//   createData(
-//     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Flag_of_France_%281794%E2%80%931815%2C_1830%E2%80%931958%29.svg/1280px-Flag_of_France_%281794%E2%80%931815%2C_1830%E2%80%931958%29.svg.png',
-//     'France',
-//     'FRA',
-//     'france'
-//   ),
-//   createData(
-//     'https://upload.wikimedia.org/wikipedia/en/thumb/b/ba/Flag_of_Germany.svg/1200px-Flag_of_Germany.svg.png',
-//     'Germany',
-//     'GER',
-//     'germany'
-//   ),
-// ];
 interface HeadCell {
   disablePadding: boolean;
   id: keyof ITeam;
@@ -175,7 +141,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
           id="tableTitle"
           component="div"
         >
-          Teams
+          Search Box here
         </Typography>
       )}
       {numSelected > 0 ? (
@@ -191,11 +157,11 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 
 function EnhancedTable() {
   const [selected, setSelected] = useState<readonly string[]>([]);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState<number>(1);
   const [previous, setPrevious] = useState<number | null>(null);
   const [next, setNext] = useState<number | null>(null);
-  const [rowsPerPage, setRowsPerPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(12);
   const [rows, setRows] = useState<ITeam[]>([]);
 
   const { accessToken } = useContext(AuthContext);
@@ -275,90 +241,99 @@ function EnhancedTable() {
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-
   return (
     <Box sx={{ width: '100%' }}>
-      <EnhancedTableToolbar numSelected={selected.length} />
-      <TableContainer>
-        <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-          <EnhancedTableHead
-            numSelected={selected.length}
-            onSelectAllClick={handleSelectAllClick}
-            rowCount={rows.length}
-          />
-          <TableBody>
-            {/* if you don't need to support IE11, you can replace the `stableSort` call with:
-              rows.slice().sort(getComparator(order, orderBy)) */}
-            {rows.map((row, index) => {
-              const isItemSelected = isSelected(row.name);
-              const labelId = `enhanced-table-checkbox-${index}`;
+      <Container>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          my={5}
+        >
+          <Typography variant="h4" gutterBottom>
+            User
+          </Typography>
+          <Button
+            variant="contained"
+            component={RouterLink}
+            to="/admin/teams/add"
+            startIcon={<Add />}
+          >
+            New User
+          </Button>
+        </Stack>
+        <Card>
+          <EnhancedTableToolbar numSelected={selected.length} />
+          <TableContainer>
+            <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
+              <EnhancedTableHead
+                numSelected={selected.length}
+                onSelectAllClick={handleSelectAllClick}
+                rowCount={rows.length}
+              />
+              <TableBody>
+                {/* if you don't need to support IE11, you can replace the `stableSort` call with:
+                    rows.slice().sort(getComparator(order, orderBy)) */}
+                {rows.map((row, index) => {
+                  const isItemSelected = isSelected(row.name);
+                  const labelId = `enhanced-table-checkbox-${index}`;
 
-              return (
-                <TableRow
-                  hover
-                  onClick={event => handleClick(event, row.name)}
-                  role="checkbox"
-                  aria-checked={isItemSelected}
-                  tabIndex={-1}
-                  key={row.name}
-                  selected={isItemSelected}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isItemSelected}
-                      inputProps={{
-                        'aria-labelledby': labelId,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="left">
-                    <img
-                      src={`http://localhost:3001/teams/${row.flagIcon}`}
-                      width="30"
-                      alt={row.name}
-                    />
-                  </TableCell>
-                  <TableCell
-                    id={labelId}
-                    align="left"
-                    scope="row"
-                    padding="none"
-                  >
-                    {row.name}
-                  </TableCell>
+                  return (
+                    <TableRow
+                      hover
+                      onClick={event => handleClick(event, row.name)}
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row.name}
+                      selected={isItemSelected}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          checked={isItemSelected}
+                          inputProps={{
+                            'aria-labelledby': labelId,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell align="left">
+                        <img
+                          src={`http://localhost:3001/teams/${row.flagIcon}`}
+                          width="30"
+                          alt={row.name}
+                        />
+                      </TableCell>
+                      <TableCell
+                        id={labelId}
+                        align="left"
+                        scope="row"
+                        padding="none"
+                      >
+                        {row.name}
+                      </TableCell>
 
-                  <TableCell align="left">{row.shortName}</TableCell>
-                  <TableCell align="left">{row.permalink}</TableCell>
-                </TableRow>
-              );
-            })}
-            {/* {emptyRows > 0 && (
-              <TableRow
-                style={{
-                  height: 53 * emptyRows,
-                }}
-              >
-                <TableCell colSpan={5} />
-              </TableRow>
-            )} */}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* <TablePagination
-        rowsPerPageOptions={[1, 2, 5]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      /> */}
-      {rows.length > 0 ? (
-        <Pagination count={lastPage} page={page} onChange={handleChangePage} />
-      ) : null}
+                      <TableCell align="left">{row.shortName}</TableCell>
+                      <TableCell align="left">{row.permalink}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {rows.length > 0 ? (
+            <Pagination
+              count={lastPage}
+              page={page}
+              color="primary"
+              onChange={handleChangePage}
+              sx={{
+                my: 3,
+              }}
+            />
+          ) : null}
+        </Card>
+      </Container>
     </Box>
   );
 }

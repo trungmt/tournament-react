@@ -12,7 +12,6 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -23,21 +22,32 @@ import Pagination from '@mui/material/Pagination';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AdminLayout } from '../../components';
 import AuthContext from '../../store/auth-context';
-import { Button, Card, Container, Stack } from '@mui/material';
-import { Add } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
+import {
+  Button,
+  Card,
+  Container,
+  FormControl,
+  FormHelperText,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
+  Stack,
+} from '@mui/material';
+import { Add, Search } from '@mui/icons-material';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
+import EnhancedTableHead, {
+  HeadCell,
+} from '../../components/table/EnhancedTableHead';
+import FakeProgress from '../../components/ui/FakeProgress';
 
 interface ITeam {
   flagIcon: string;
   name: string;
   shortName: string;
   permalink: string;
-}
-interface HeadCell {
-  disablePadding: boolean;
-  id: keyof ITeam;
-  label: string;
-  numeric: boolean;
 }
 
 const headCells: readonly HeadCell[] = [
@@ -65,44 +75,13 @@ const headCells: readonly HeadCell[] = [
     disablePadding: true,
     label: 'Permalink',
   },
+  {
+    id: 'tool',
+    numeric: false,
+    disablePadding: true,
+    label: '',
+  },
 ];
-
-interface EnhancedTableProps {
-  numSelected: number;
-  onSelectAllClick: (event: ChangeEvent<HTMLInputElement>) => void;
-  rowCount: number;
-}
-
-function EnhancedTableHead(props: EnhancedTableProps) {
-  const { onSelectAllClick, numSelected, rowCount } = props;
-
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            color="primary"
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{
-              'aria-label': 'select all desserts',
-            }}
-          />
-        </TableCell>
-        {headCells.map(headCell => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-          >
-            {headCell.label}
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
 
 interface EnhancedTableToolbarProps {
   numSelected: number;
@@ -135,14 +114,23 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
           {numSelected} selected
         </Typography>
       ) : (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Search Box here
-        </Typography>
+        <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
+          <OutlinedInput
+            id="outlined-adornment-weight"
+            value={''}
+            onChange={() => {}}
+            aria-describedby="outlined-weight-helper-text"
+            startAdornment={
+              <InputAdornment position="start">
+                <Search fontSize="small" />
+              </InputAdornment>
+            }
+            inputProps={{
+              'aria-label': 'weight',
+            }}
+            placeholder="Search team..."
+          />
+        </FormControl>
       )}
       {numSelected > 0 ? (
         <Tooltip title="Delete">
@@ -156,19 +144,30 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 };
 
 function EnhancedTable() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const limitQueryParams = searchParams.get('limit');
+  const pageQueryParams = searchParams.get('page');
+  const searchQueryParams = searchParams.get('query');
+
+  const [page, setPage] = useState(
+    pageQueryParams ? parseInt(pageQueryParams, 10) : 1
+  );
+  const [rowsPerPage, setRowsPerPage] = useState(
+    limitQueryParams ? parseInt(limitQueryParams, 10) : 10
+  );
   const [selected, setSelected] = useState<readonly string[]>([]);
-  const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState<number>(1);
-  const [previous, setPrevious] = useState<number | null>(null);
-  const [next, setNext] = useState<number | null>(null);
-  const [rowsPerPage, setRowsPerPage] = useState(12);
   const [rows, setRows] = useState<ITeam[]>([]);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
 
   const { accessToken } = useContext(AuthContext);
   const getTeamList = useCallback(async () => {
-    // TODO: add rowsPerPage dropdown
-    // TODO: add FakeProgress when fetching
-    // TODO: it seems dont next next, previous and current in response
+    // TODO: add search box
+    // TODO: separate child components
+    // TODO: make table content a separate component so that re-rendering only apply to table
+    // TODO: add tool menu
+    // TODO: handle no result case
+    setIsFetching(true);
     try {
       const rowPerPageQuery = rowsPerPage || '';
       const pageQuery = page || '';
@@ -189,12 +188,12 @@ function EnhancedTable() {
       console.log('data', paginationData);
       setRows(paginationData.results);
       setLastPage(paginationData.lastPage);
-      setPrevious(paginationData.previous);
-      setNext(paginationData.next);
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsFetching(false);
     }
-  }, [accessToken, rowsPerPage, page]);
+  }, [rowsPerPage, page]);
 
   useEffect(() => {
     getTeamList();
@@ -209,7 +208,7 @@ function EnhancedTable() {
     setSelected([]);
   };
 
-  const handleClick = (event: MouseEvent<unknown>, name: string) => {
+  const handleTableRowClick = (event: MouseEvent<unknown>, name: string) => {
     const selectedIndex = selected.indexOf(name);
     let newSelected: readonly string[] = [];
 
@@ -230,17 +229,27 @@ function EnhancedTable() {
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
+    setSearchParams({
+      limit: rowsPerPage.toString(),
+      page: newPage.toString(),
+    });
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (event: SelectChangeEvent) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(1);
+    setSearchParams({});
   };
 
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
+  if (isFetching === true) {
+    return <FakeProgress />;
+  }
+
   // Avoid a layout jump when reaching the last page with empty rows.
+  const emptyRows = rowsPerPage - rows.length;
   return (
     <Box sx={{ width: '100%' }}>
       <Container>
@@ -251,7 +260,7 @@ function EnhancedTable() {
           my={5}
         >
           <Typography variant="h4" gutterBottom>
-            User
+            Teams
           </Typography>
           <Button
             variant="contained"
@@ -259,21 +268,20 @@ function EnhancedTable() {
             to="/admin/teams/add"
             startIcon={<Add />}
           >
-            New User
+            New Team
           </Button>
         </Stack>
-        <Card>
+        <Card sx={{ mb: 6 }}>
           <EnhancedTableToolbar numSelected={selected.length} />
           <TableContainer>
             <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
               <EnhancedTableHead
+                headCells={headCells}
                 numSelected={selected.length}
                 onSelectAllClick={handleSelectAllClick}
                 rowCount={rows.length}
               />
               <TableBody>
-                {/* if you don't need to support IE11, you can replace the `stableSort` call with:
-                    rows.slice().sort(getComparator(order, orderBy)) */}
                 {rows.map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
@@ -281,7 +289,7 @@ function EnhancedTable() {
                   return (
                     <TableRow
                       hover
-                      onClick={event => handleClick(event, row.name)}
+                      onClick={event => handleTableRowClick(event, row.name)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
@@ -318,20 +326,50 @@ function EnhancedTable() {
                     </TableRow>
                   );
                 })}
+                {emptyRows > 0 && (
+                  <TableRow
+                    style={{
+                      height: 53 * emptyRows,
+                    }}
+                  >
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-          {rows.length > 0 ? (
-            <Pagination
-              count={lastPage}
-              page={page}
-              color="primary"
-              onChange={handleChangePage}
-              sx={{
-                my: 3,
-              }}
-            />
-          ) : null}
+
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            justifyContent="flex-end"
+            mr={3}
+          >
+            {rows.length > 0 ? (
+              <Pagination
+                count={lastPage}
+                page={page}
+                color="primary"
+                onChange={handleChangePage}
+                sx={{
+                  my: 3,
+                }}
+              />
+            ) : null}
+            <InputLabel htmlFor="rows-per-page">Rows per page</InputLabel>
+            <Select
+              value={rowsPerPage.toString()}
+              onChange={handleChangeRowsPerPage}
+              displayEmpty
+              size="small"
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={20}>20</MenuItem>
+              <MenuItem value={30}>30</MenuItem>
+            </Select>
+          </Stack>
         </Card>
       </Container>
     </Box>

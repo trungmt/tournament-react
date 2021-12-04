@@ -22,10 +22,10 @@ export default function Button(theme: Theme) {
           },
         },
         containedPrimary: {
-          boxShadow: theme.customShadows.z1,
+          boxShadow: theme.customShadows.primary,
         },
         containedSecondary: {
-          boxShadow: theme.customShadows.z1,
+          boxShadow: theme.customShadows.secondary,
         },
         outlinedInherit: {
           border: `1px solid ${theme.palette.grey[400]}`,

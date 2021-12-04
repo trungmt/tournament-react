@@ -1,4 +1,5 @@
 // material
+import { SimplePaletteColorOptions } from '@mui/material';
 import { Shadows } from '@mui/material/styles/shadows';
 import { alpha } from '@mui/system';
 import palette from './palette';
@@ -46,10 +47,15 @@ export interface CustomShadows {
   z16: string;
   z20: string;
   z24: string;
+  primary: string;
+  secondary: string;
+  info: string;
+  success: string;
+  warning: string;
+  error: string;
 }
 const createCustomShadow = (color: string) => {
   const transparent = alpha(color, 0.24);
-
   return {
     z1: `0 1px 2px 0 ${transparent}`,
     z8: `0 8px 16px 0 ${transparent}`,
@@ -57,6 +63,30 @@ const createCustomShadow = (color: string) => {
     z16: `0 0 2px 0 ${transparent}, 0 16px 32px -4px ${transparent}`,
     z20: `0 0 2px 0 ${transparent}, 0 20px 40px -4px ${transparent}`,
     z24: `0 0 4px 0 ${transparent}, 0 24px 48px 0 ${transparent}`,
+    primary: `0 8px 16px 0 ${alpha(
+      (palette.primary as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
+    secondary: `0 8px 16px 0 ${alpha(
+      (palette.secondary as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
+    info: `0 8px 16px 0 ${alpha(
+      (palette.info as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
+    success: `0 8px 16px 0 ${alpha(
+      (palette.success as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
+    warning: `0 8px 16px 0 ${alpha(
+      (palette.warning as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
+    error: `0 8px 16px 0 ${alpha(
+      (palette.error as SimplePaletteColorOptions)!.main,
+      0.24
+    )}`,
   };
 };
 

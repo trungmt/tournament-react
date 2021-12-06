@@ -19,6 +19,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { AdminLayout } from '../../components';
+import MoreMenu from '../../components/table/MoreMenu';
 import AuthContext from '../../store/auth-context';
 import {
   Button,
@@ -71,10 +72,10 @@ const headCells: readonly HeadCell[] = [
     label: 'Permalink',
   },
   {
-    id: 'tool',
+    id: 'actions',
     numeric: false,
     disablePadding: true,
-    label: '',
+    label: 'Actions',
   },
 ];
 
@@ -192,11 +193,9 @@ function EnhancedTable() {
 
   const { accessToken } = useContext(AuthContext);
   const getTeamList = useCallback(async () => {
-    // TODO: add search box
+    // TODO: handle no result case
     // TODO: separate child components
     // TODO: make table content a separate component so that re-rendering only apply to table
-    // TODO: add tool menu
-    // TODO: handle no result case
     setIsFetching(true);
     try {
       let url = `http://localhost:3001/api/admin/teams?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
@@ -370,6 +369,9 @@ function EnhancedTable() {
                       </TableCell>
                       <TableCell align="left" padding="none">
                         {row.permalink}
+                      </TableCell>
+                      <TableCell align="left" padding="none">
+                        <MoreMenu _id={row._id} />
                       </TableCell>
                     </TableRow>
                   );

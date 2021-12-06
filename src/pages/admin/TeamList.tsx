@@ -39,6 +39,7 @@ import EnhancedTableHead, {
 import FakeProgress from '../../components/ui/FakeProgress';
 import { object, SchemaOf, string } from 'yup';
 import { Form, FormikProvider, useFormik } from 'formik';
+import SearchNotFound from '../../components/table/SearchNotFound';
 
 interface ITeam {
   _id: string;
@@ -194,6 +195,7 @@ function EnhancedTable() {
   const { accessToken } = useContext(AuthContext);
   const getTeamList = useCallback(async () => {
     // TODO: handle no result case
+    // TODO: handle error
     // TODO: separate child components
     // TODO: make table content a separate component so that re-rendering only apply to table
     setIsFetching(true);
@@ -285,8 +287,9 @@ function EnhancedTable() {
     return <FakeProgress />;
   }
 
+  const isEmpty = rows.length === 0;
   // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows = rowsPerPage - rows.length;
+  const emptyRows = isEmpty ? 0 : rowsPerPage - rows.length;
   return (
     <Box sx={{ width: '100%' }}>
       <Container>
@@ -386,10 +389,20 @@ function EnhancedTable() {
                   </TableRow>
                 )}
               </TableBody>
+
+              {isEmpty && (
+                <TableBody>
+                  <TableRow>
+                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                      <SearchNotFound searchQuery={searchText} />
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
             </Table>
           </TableContainer>
 
-          {rows.length > 0 ? (
+          {!isEmpty && (
             <TablePagination
               rowsPerPageOptions={DEFAULT_PAGINATION_OPTIONS}
               component="div"
@@ -399,7 +412,7 @@ function EnhancedTable() {
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
-          ) : null}
+          )}
         </Card>
       </Container>
     </Box>

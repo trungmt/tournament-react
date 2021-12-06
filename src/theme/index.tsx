@@ -69,8 +69,8 @@ export default function ThemeConfig({ children }: ThemeConfigProps) {
             html: {
               width: '100%',
               height: '100%',
-              '-ms-text-size-adjust': '100%',
-              '-webkit-overflow-scrolling': 'touch',
+              msTextSizeAdjust: '100%',
+              WebkitOverflowScrolling: 'touch',
             },
             body: {
               width: '100%',

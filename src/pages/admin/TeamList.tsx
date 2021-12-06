@@ -166,17 +166,26 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
 };
 
 function EnhancedTable() {
+  const getIntegerFromSearchParams = (
+    searchParams: string | null,
+    defaultValue: number
+  ): number => {
+    if (searchParams === null) return defaultValue;
+
+    const parseIntResult = parseInt(searchParams, 10);
+    if (isNaN(parseIntResult) || parseIntResult < 0) return defaultValue;
+
+    return parseIntResult;
+  };
+  const DEFAULT_PAGINATION_OPTIONS = [10, 15, 20];
+
   const [searchParams, setSearchParams] = useSearchParams();
   const limitQueryParams = searchParams.get('limit');
   const pageQueryParams = searchParams.get('page');
   const searchTextQueryParams = searchParams.get('query');
 
-  const [page, setPage] = useState(
-    pageQueryParams ? parseInt(pageQueryParams, 10) : 1
-  );
-  const [rowsPerPage, setRowsPerPage] = useState(
-    limitQueryParams ? parseInt(limitQueryParams, 10) : 10
-  );
+  const page = getIntegerFromSearchParams(pageQueryParams, 1);
+  const rowsPerPage = getIntegerFromSearchParams(limitQueryParams, 10);
   const searchText = searchTextQueryParams || '';
 
   const [selected, setSelected] = useState<readonly string[]>([]);
@@ -193,9 +202,7 @@ function EnhancedTable() {
     // TODO: handle no result case
     setIsFetching(true);
     try {
-      const rowPerPageQuery = rowsPerPage || '';
-      const pageQuery = page || '';
-      let url = `http://localhost:3001/api/admin/teams?limit=${rowPerPageQuery}&page=${pageQuery}`;
+      let url = `http://localhost:3001/api/admin/teams?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
@@ -217,7 +224,7 @@ function EnhancedTable() {
     } finally {
       setIsFetching(false);
     }
-  }, [rowsPerPage, page]);
+  }, [page, rowsPerPage, searchText]);
 
   useEffect(() => {
     getTeamList();
@@ -254,19 +261,29 @@ function EnhancedTable() {
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setSearchParams({
+      query: searchText,
       limit: rowsPerPage.toString(),
-      page: newPage.toString(),
+      page: (newPage + 1).toString(),
     });
-    setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: SelectChangeEvent) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(1);
-    setSearchParams({});
+  const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchParams({
+      query: searchText,
+      limit: parseInt(event.target.value, 10).toString(),
+      page: '1',
+    });
   };
 
-  const isSelected = (name: string) => selected.indexOf(name) !== -1;
+  const searchFormSubmitHandler = ({ query }: SearchFormInput) => {
+    setSearchParams({
+      query,
+      limit: rowsPerPage.toString(),
+      page: page.toString(),
+    });
+  };
+
+  const isSelected = (_id: string) => selected.indexOf(_id) !== -1;
 
   if (isFetching === true) {
     return <FakeProgress />;
@@ -317,7 +334,6 @@ function EnhancedTable() {
                   return (
                     <TableRow
                       hover
-                      onClick={event => handleTableRowClick(event, row.name)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
@@ -327,6 +343,7 @@ function EnhancedTable() {
                       <TableCell padding="checkbox">
                         <Checkbox
                           color="primary"
+                          onClick={event => handleTableRowClick(event, row._id)}
                           checked={isItemSelected}
                           inputProps={{
                             'aria-labelledby': labelId,

@@ -52,15 +52,9 @@ interface ITeam {
 
 const headCells: readonly HeadCell[] = [
   {
-    id: 'flagIcon',
-    numeric: false,
-    disablePadding: false,
-    label: 'Flag',
-  },
-  {
     id: 'name',
     numeric: false,
-    disablePadding: true,
+    disablePadding: false,
     label: 'Name',
   },
   {
@@ -305,24 +299,30 @@ function EnhancedTable() {
                           }}
                         />
                       </TableCell>
-                      <TableCell align="left">
-                        <img
-                          src={`http://localhost:3001/teams/${row.flagIcon}`}
-                          width="30"
-                          alt={row.name}
-                        />
-                      </TableCell>
                       <TableCell
                         id={labelId}
-                        align="left"
+                        component="th"
                         scope="row"
-                        padding="none"
+                        align="left"
                       >
-                        {row.name}
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <img
+                            src={`http://localhost:3001/teams/${row.flagIcon}`}
+                            width="30"
+                            alt={row.name}
+                          />
+                          <Typography variant="subtitle2" noWrap>
+                            {row.name}
+                          </Typography>
+                        </Stack>
                       </TableCell>
 
-                      <TableCell align="left">{row.shortName}</TableCell>
-                      <TableCell align="left">{row.permalink}</TableCell>
+                      <TableCell align="left" padding="none">
+                        {row.shortName}
+                      </TableCell>
+                      <TableCell align="left" padding="none">
+                        {row.permalink}
+                      </TableCell>
                     </TableRow>
                   );
                 })}

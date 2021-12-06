@@ -18,7 +18,6 @@ import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import Pagination from '@mui/material/Pagination';
 import { AdminLayout } from '../../components';
 import AuthContext from '../../store/auth-context';
 import {
@@ -26,14 +25,10 @@ import {
   Card,
   Container,
   FormControl,
-  FormHelperText,
   InputAdornment,
-  InputLabel,
-  MenuItem,
   OutlinedInput,
-  Select,
-  SelectChangeEvent,
   Stack,
+  TablePagination,
 } from '@mui/material';
 import { Add, Search, Delete as DeleteIcon } from '@mui/icons-material';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
@@ -190,6 +185,7 @@ function EnhancedTable() {
 
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [lastPage, setLastPage] = useState<number>(1);
+  const [count, setCount] = useState<number>(0);
   const [rows, setRows] = useState<ITeam[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
@@ -216,9 +212,9 @@ function EnhancedTable() {
       }
 
       const paginationData: PaginationResult<ITeam> = await response.json();
-      console.log('data', paginationData);
       setRows(paginationData.results);
       setLastPage(paginationData.lastPage);
+      setCount(paginationData.count);
     } catch (error) {
       console.log(error);
     } finally {
@@ -390,37 +386,17 @@ function EnhancedTable() {
             </Table>
           </TableContainer>
 
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            justifyContent="flex-end"
-            mr={3}
-          >
-            {rows.length > 0 ? (
-              <Pagination
-                count={lastPage}
-                page={page}
-                color="primary"
-                onChange={handleChangePage}
-                sx={{
-                  my: 3,
-                }}
-              />
-            ) : null}
-            <InputLabel htmlFor="rows-per-page">Rows per page</InputLabel>
-            <Select
-              value={rowsPerPage.toString()}
-              onChange={handleChangeRowsPerPage}
-              displayEmpty
-              size="small"
-              inputProps={{ 'aria-label': 'Without label' }}
-            >
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={20}>20</MenuItem>
-              <MenuItem value={30}>30</MenuItem>
-            </Select>
-          </Stack>
+          {rows.length > 0 ? (
+            <TablePagination
+              rowsPerPageOptions={DEFAULT_PAGINATION_OPTIONS}
+              component="div"
+              count={count}
+              rowsPerPage={rowsPerPage}
+              page={page - 1}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          ) : null}
         </Card>
       </Container>
     </Box>

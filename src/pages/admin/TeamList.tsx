@@ -19,7 +19,6 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Pagination from '@mui/material/Pagination';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { AdminLayout } from '../../components';
 import AuthContext from '../../store/auth-context';
 import {
@@ -36,18 +35,24 @@ import {
   SelectChangeEvent,
   Stack,
 } from '@mui/material';
-import { Add, Search } from '@mui/icons-material';
+import { Add, Search, Delete as DeleteIcon } from '@mui/icons-material';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import EnhancedTableHead, {
   HeadCell,
 } from '../../components/table/EnhancedTableHead';
 import FakeProgress from '../../components/ui/FakeProgress';
+import { object, SchemaOf, string } from 'yup';
+import { Form, FormikProvider, useFormik } from 'formik';
 
 interface ITeam {
   flagIcon: string;
   name: string;
   shortName: string;
   permalink: string;
+}
+
+interface SearchFormInput {
+  query: string;
 }
 
 const headCells: readonly HeadCell[] = [
@@ -79,16 +84,32 @@ const headCells: readonly HeadCell[] = [
 
 interface EnhancedTableToolbarProps {
   numSelected: number;
+  defaultQuery?: string;
+  onSearchFormSubmit: (values: SearchFormInput) => void;
 }
 
 const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
   const { numSelected } = props;
 
+  const SearchSchema: SchemaOf<SearchFormInput> = object({
+    query: string().default('').label('Search Team'),
+  });
+
+  const formik = useFormik<SearchFormInput>({
+    initialValues: {
+      query: props.defaultQuery || '',
+    },
+    validationSchema: SearchSchema,
+    onSubmit: props.onSearchFormSubmit,
+  });
+
+  const { handleSubmit, getFieldProps } = formik;
   return (
     <Toolbar
       sx={{
         pl: { sm: 2 },
         pr: { xs: 1, sm: 1 },
+        height: 96,
         ...(numSelected > 0 && {
           bgcolor: theme =>
             alpha(
@@ -108,23 +129,30 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
           {numSelected} selected
         </Typography>
       ) : (
-        <FormControl sx={{ m: 1, width: '25ch' }} variant="outlined">
-          <OutlinedInput
-            id="outlined-adornment-weight"
-            value={''}
-            onChange={() => {}}
-            aria-describedby="outlined-weight-helper-text"
-            startAdornment={
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            }
-            inputProps={{
-              'aria-label': 'weight',
-            }}
-            placeholder="Search team..."
-          />
-        </FormControl>
+        <FormikProvider value={formik}>
+          <Form onSubmit={handleSubmit}>
+            <FormControl
+              sx={{ m: 1, width: '25ch', flexDirection: 'row' }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                id="outlined-adornment-weight"
+                aria-describedby="outlined-weight-helper-text"
+                {...getFieldProps('query')}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <Search fontSize="small" />
+                  </InputAdornment>
+                }
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                placeholder="Search team..."
+                sx={{ mr: 2 }}
+              />
+            </FormControl>
+          </Form>
+        </FormikProvider>
       )}
       {numSelected > 0 ? (
         <Tooltip title="Delete">
@@ -141,7 +169,7 @@ function EnhancedTable() {
   const [searchParams, setSearchParams] = useSearchParams();
   const limitQueryParams = searchParams.get('limit');
   const pageQueryParams = searchParams.get('page');
-  const searchQueryParams = searchParams.get('query');
+  const searchTextQueryParams = searchParams.get('query');
 
   const [page, setPage] = useState(
     pageQueryParams ? parseInt(pageQueryParams, 10) : 1
@@ -149,6 +177,8 @@ function EnhancedTable() {
   const [rowsPerPage, setRowsPerPage] = useState(
     limitQueryParams ? parseInt(limitQueryParams, 10) : 10
   );
+  const searchText = searchTextQueryParams || '';
+
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [lastPage, setLastPage] = useState<number>(1);
   const [rows, setRows] = useState<ITeam[]>([]);
@@ -266,7 +296,11 @@ function EnhancedTable() {
           </Button>
         </Stack>
         <Card sx={{ mb: 6 }}>
-          <EnhancedTableToolbar numSelected={selected.length} />
+          <EnhancedTableToolbar
+            defaultQuery={searchText}
+            numSelected={selected.length}
+            onSearchFormSubmit={searchFormSubmitHandler}
+          />
           <TableContainer>
             <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
               <EnhancedTableHead

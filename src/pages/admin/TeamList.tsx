@@ -40,6 +40,7 @@ import { object, SchemaOf, string } from 'yup';
 import { Form, FormikProvider, useFormik } from 'formik';
 
 interface ITeam {
+  _id: string;
   flagIcon: string;
   name: string;
   shortName: string;
@@ -228,19 +229,19 @@ function EnhancedTable() {
 
   const handleSelectAllClick = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map(n => n.name);
+      const newSelecteds = rows.map(n => n._id);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleTableRowClick = (event: MouseEvent<unknown>, name: string) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleTableRowClick = (event: MouseEvent<unknown>, _id: string) => {
+    const selectedIndex = selected.indexOf(_id);
     let newSelected: readonly string[] = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, _id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -324,8 +325,8 @@ function EnhancedTable() {
               />
               <TableBody>
                 {rows.map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
+                  const isItemSelected = isSelected(row._id);
+                  const labelId = `enhanced-table-checkbox-${row._id}`;
 
                   return (
                     <TableRow

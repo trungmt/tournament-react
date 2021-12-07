@@ -27,6 +27,7 @@ import {
   EnhancedTableToolbar,
   SearchFormInput,
 } from '../../components/table/EnhancedTableToolbar';
+import constants from '../../config/constants';
 
 export interface IEntity {
   _id: string;
@@ -41,7 +42,7 @@ export function EnhancedTable<T extends IEntity>({
   headCells,
   displayRows,
 }: EnhancedTableProps<T>) {
-  const DEFAULT_PAGINATION_OPTIONS = [10, 15, 20];
+  const DEFAULT_PAGINATION_OPTIONS = constants.DEFAULT_PAGING_OPTIONS;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const limitQueryParams = searchParams.get('limit');

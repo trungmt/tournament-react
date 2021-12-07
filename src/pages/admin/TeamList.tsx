@@ -5,6 +5,7 @@ import { AdminLayout, AdminMainContent } from '../../components';
 import { HeadCell } from '../../components/table/EnhancedTableHead';
 import { EnhancedTable, IEntity } from '../../components/table/EnhancedTable';
 import { Stack } from '@mui/material';
+import constants from '../../config/constants';
 
 interface ITeam extends IEntity {
   flagIcon: string;
@@ -46,7 +47,7 @@ const displayRowsHandler = (row: ITeam): JSX.Element => {
       <TableCell component="th" scope="row" align="left">
         <Stack direction="row" alignItems="center" spacing={2}>
           <img
-            src={`http://localhost:3001/teams/${row.flagIcon}`}
+            src={`${constants.DEFAULT_URL}/teams/${row.flagIcon}`}
             width="30"
             alt={row.name}
           />

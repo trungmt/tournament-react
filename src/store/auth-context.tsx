@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import { useNavigate } from 'react-router-dom';
+import constants from '../config/constants';
 
 interface IUser {
   name: string;
@@ -57,7 +58,7 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3001/auth/refresh', {
+      const response = await fetch(`${constants.AUTH_URL}/refresh`, {
         method: 'POST',
         credentials: 'include',
       });

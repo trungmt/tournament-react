@@ -1,6 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import { TopPage, LoginPage, RegisterPage, AdminTopPage } from './pages/index';
+import {
+  TopPage,
+  LoginPage,
+  RegisterPage,
+  AdminTopPage,
+  AdminTeamListPage,
+} from './pages/index';
 import { RequireAuth } from './components/index';
 import ThemeConfig from './theme';
 
@@ -27,6 +33,15 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/admin/teams"
+          element={
+            <RequireAuth>
+              <AdminTeamListPage />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<div>404 not found</div>} />
       </Routes>
     </ThemeConfig>
   );

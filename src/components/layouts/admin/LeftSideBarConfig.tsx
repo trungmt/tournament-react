@@ -17,12 +17,12 @@ const sidebarConfig: LeftSideBarItemProps[] = [
   {
     title: 'Tournaments',
     icon: getIcon(AccountTree),
-    path: '/admin/team',
+    path: '/admin/tournaments',
   },
   {
-    title: 'Team',
+    title: 'Teams',
     icon: getIcon(Group),
-    path: '/admin/team',
+    path: '/admin/teams',
   },
 ];
 

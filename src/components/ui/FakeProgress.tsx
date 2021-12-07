@@ -6,7 +6,7 @@ export default function FakeProgress() {
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress(oldProgress => {
-        if (oldProgress === 80) {
+        if (oldProgress >= 80) {
           return oldProgress;
         }
         const diff = Math.random() * 10;

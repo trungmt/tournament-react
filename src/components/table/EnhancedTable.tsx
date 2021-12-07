@@ -35,11 +35,13 @@ export interface IEntity {
 
 interface EnhancedTableProps<T> {
   headCells: readonly HeadCell[];
+  listURLSegment: string;
   displayRows: (row: T) => JSX.Element;
 }
 
 export function EnhancedTable<T extends IEntity>({
   headCells,
+  listURLSegment,
   displayRows,
 }: EnhancedTableProps<T>) {
   const DEFAULT_PAGINATION_OPTIONS = constants.DEFAULT_PAGING_OPTIONS;
@@ -60,13 +62,11 @@ export function EnhancedTable<T extends IEntity>({
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
   const { accessToken } = useContext(AuthContext);
-  const getTeamList = useCallback(async () => {
+  const getList = useCallback(async () => {
     // TODO: handle error
-    // TODO: separate child components
-    // TODO: make table content a separate component so that re-rendering only apply to table
     setIsFetching(true);
     try {
-      let url = `http://localhost:3001/api/admin/teams?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
+      let url = `${constants.API_URL}/${listURLSegment}?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
       const response = await fetch(url, {
         credentials: 'include',
         headers: {
@@ -91,8 +91,8 @@ export function EnhancedTable<T extends IEntity>({
   }, [page, rowsPerPage, searchText]);
 
   useEffect(() => {
-    getTeamList();
-  }, [getTeamList]);
+    getList();
+  }, [getList]);
 
   const handleSelectAllClick = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -161,7 +161,7 @@ export function EnhancedTable<T extends IEntity>({
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = isEmpty ? 0 : rowsPerPage - rows.length;
 
-  const teamTable = (
+  const listTable = (
     <>
       <EnhancedTableToolbar
         defaultQuery={searchText}
@@ -250,7 +250,7 @@ export function EnhancedTable<T extends IEntity>({
   return (
     <>
       {isFetching === true && <FakeProgress />}
-      {teamTable}
+      {listTable}
     </>
   );
 }

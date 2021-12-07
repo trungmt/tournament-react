@@ -69,7 +69,11 @@ export function AdminTeamListPage() {
   return (
     <AdminLayout>
       <AdminMainContent pageName="Teams" addButtonLink="/admin/teams/add">
-        <EnhancedTable headCells={headCells} displayRows={displayRowsHandler} />
+        <EnhancedTable
+          headCells={headCells}
+          listURLSegment="teams"
+          displayRows={displayRowsHandler}
+        />
       </AdminMainContent>
     </AdminLayout>
   );

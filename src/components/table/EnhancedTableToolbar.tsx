@@ -75,8 +75,6 @@ export const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
               variant="outlined"
             >
               <OutlinedInput
-                id="outlined-adornment-weight"
-                aria-describedby="outlined-weight-helper-text"
                 {...getFieldProps('query')}
                 startAdornment={
                   <InputAdornment position="start">
@@ -96,9 +94,6 @@ export const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
                     )}
                   </InputAdornment>
                 }
-                inputProps={{
-                  'aria-label': 'weight',
-                }}
                 placeholder="Search team..."
                 sx={{ mr: 2 }}
               />

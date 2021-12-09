@@ -7,6 +7,7 @@ import { Link as RouterLink } from 'react-router-dom';
 
 interface MainContentProps extends PropsWithChildren<{}> {
   pageName: string;
+  wrappedWithCard?: boolean;
   addButtonLink?: string;
 }
 
@@ -14,10 +15,16 @@ export function AdminMainContent({
   children,
   pageName,
   addButtonLink,
+  wrappedWithCard = true,
 }: MainContentProps) {
+  let content = children;
+  if (wrappedWithCard === true) {
+    content = <Card sx={{ mb: 6 }}>{content}</Card>;
+  }
+
   return (
     <Box sx={{ width: '100%' }}>
-      <Container>
+      <Container maxWidth="lg">
         <Stack
           direction="row"
           alignItems="center"
@@ -34,11 +41,12 @@ export function AdminMainContent({
               to={addButtonLink}
               startIcon={<AddIcon />}
             >
-              New Team
+              Add
             </Button>
           )}
         </Stack>
-        <Card sx={{ mb: 6 }}>{children}</Card>
+
+        {content}
       </Container>
     </Box>
   );

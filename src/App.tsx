@@ -6,6 +6,7 @@ import {
   RegisterPage,
   AdminTopPage,
   AdminTeamListPage,
+  AdminTeamFormPage,
 } from './pages/index';
 import { RequireAuth } from './components/index';
 import ThemeConfig from './theme';
@@ -38,6 +39,14 @@ function App() {
           element={
             <RequireAuth>
               <AdminTeamListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/teams/add"
+          element={
+            <RequireAuth>
+              <AdminTeamFormPage />
             </RequireAuth>
           }
         />

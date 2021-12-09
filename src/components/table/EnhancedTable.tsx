@@ -27,6 +27,7 @@ import {
   EnhancedTableToolbar,
   SearchFormInput,
 } from '../../components/table/EnhancedTableToolbar';
+import { axiosClient } from '../../config/axios';
 import constants from '../../config/constants';
 
 export interface IEntity {
@@ -66,29 +67,21 @@ export function EnhancedTable<T extends IEntity>({
     // TODO: handle error
     setIsFetching(true);
     try {
-      let url = `${constants.ADMIN_API_URL}/${listURLSegment}?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
-      const response = await fetch(url, {
-        credentials: 'include',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const axiosAdminClient = axiosClient(accessToken);
+      let url = `/${listURLSegment}?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
+      const response = await axiosAdminClient.get<PaginationResult<T>>(url);
 
-      if (response.status !== 200) {
-        console.log(response.status);
-        return;
-      }
-
-      const paginationData: PaginationResult<T> = await response.json();
+      const paginationData = response.data;
       setRows(paginationData.results);
       setLastPage(paginationData.lastPage);
       setCount(paginationData.count);
     } catch (error) {
       console.log(error);
+      // console.log(response.status);
     } finally {
       setIsFetching(false);
     }
-  }, [page, rowsPerPage, searchText]);
+  }, [page, rowsPerPage, searchText, listURLSegment]);
 
   useEffect(() => {
     getList();

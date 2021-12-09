@@ -7,11 +7,6 @@ interface AppConfigs {
 }
 
 const constants = (): AppConfigs => {
-  console.log(
-    'process.env.REACT_APP_BACKEND_URL',
-    process.env.REACT_APP_BACKEND_URL
-  );
-  console.log(`${process.env.REACT_APP_BACKEND_URL}/auth`);
   const siteURL = process.env.REACT_APP_SITE_URL || 'http://localhost:3000';
   const backendURL =
     process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';

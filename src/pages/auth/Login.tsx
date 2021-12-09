@@ -14,6 +14,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useFormik, Form, FormikProvider } from 'formik';
 import { SchemaOf, object, string } from 'yup';
 import AuthContext, { IAuthContextProps } from '../../store/auth-context';
+import { axiosAuthClient } from '../../config/axios';
 import constants from '../../config/constants';
 
 interface LoginFormInput {
@@ -49,17 +50,10 @@ export function LoginPage() {
       password: 'abcd1234',
     },
     validationSchema: LoginSchema,
-    onSubmit: async values => {
+    onSubmit: async loginForm => {
       try {
-        const response = await fetch(`${constants.AUTH_API_URL}/login`, {
-          method: 'POST',
-          body: JSON.stringify(values),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        const { user, accessToken }: IAuthContextProps = await response.json();
+        const response = await axiosAuthClient.post('/login', loginForm);
+        const { user, accessToken }: IAuthContextProps = await response.data;
 
         setAuth(user, accessToken);
         navigate(from, { replace: true });

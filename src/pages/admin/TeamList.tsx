@@ -3,16 +3,9 @@ import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 import { AdminLayout, AdminMainContent } from '../../components';
 import { HeadCell } from '../../components/table/EnhancedTableHead';
-import { EnhancedTable, IEntity } from '../../components/table/EnhancedTable';
+import { EnhancedTable } from '../../components/table/EnhancedTable';
 import { Stack } from '@mui/material';
 import constants from '../../config/constants';
-
-interface ITeam extends IEntity {
-  flagIcon: string;
-  name: string;
-  shortName: string;
-  permalink: string;
-}
 
 const headCells: readonly HeadCell[] = [
   {

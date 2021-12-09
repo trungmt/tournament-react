@@ -7,3 +7,14 @@ interface PaginationResult<T = any> {
   previous: number | null;
   next: number | null;
 }
+
+interface IEntity {
+  _id: string;
+}
+
+interface ITeam extends IEntity {
+  flagIcon: string;
+  name: string;
+  shortName: string;
+  permalink: string;
+}

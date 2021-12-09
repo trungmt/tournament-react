@@ -30,10 +30,6 @@ import {
 import { axiosClient } from '../../config/axios';
 import constants from '../../config/constants';
 
-export interface IEntity {
-  _id: string;
-}
-
 interface EnhancedTableProps<T> {
   headCells: readonly HeadCell[];
   listURLSegment: string;

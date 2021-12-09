@@ -58,7 +58,7 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch(`${constants.AUTH_URL}/refresh`, {
+      const response = await fetch(`${constants.AUTH_API_URL}/refresh`, {
         method: 'POST',
         credentials: 'include',
       });

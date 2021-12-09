@@ -51,7 +51,7 @@ export function LoginPage() {
     validationSchema: LoginSchema,
     onSubmit: async values => {
       try {
-        const response = await fetch(`${constants.AUTH_URL}/login`, {
+        const response = await fetch(`${constants.AUTH_API_URL}/login`, {
           method: 'POST',
           body: JSON.stringify(values),
           headers: {

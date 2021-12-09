@@ -66,7 +66,7 @@ export function EnhancedTable<T extends IEntity>({
     // TODO: handle error
     setIsFetching(true);
     try {
-      let url = `${constants.API_URL}/${listURLSegment}?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
+      let url = `${constants.ADMIN_API_URL}/${listURLSegment}?query=${searchText}&limit=${rowsPerPage}&page=${page}`;
       const response = await fetch(url, {
         credentials: 'include',
         headers: {

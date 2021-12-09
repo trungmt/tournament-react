@@ -47,7 +47,7 @@ const displayRowsHandler = (row: ITeam): JSX.Element => {
       <TableCell component="th" scope="row" align="left">
         <Stack direction="row" alignItems="center" spacing={2}>
           <img
-            src={`${constants.DEFAULT_URL}/teams/${row.flagIcon}`}
+            src={`${constants.DEFAULT_BACKEND_URL}/teams/${row.flagIcon}`}
             width="30"
             alt={row.name}
           />

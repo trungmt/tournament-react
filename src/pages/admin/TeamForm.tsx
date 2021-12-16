@@ -12,8 +12,12 @@ import FormPart from '../../components/form/FormPart';
 import FileInput from '../../components/form/FileInput';
 import { axiosClient } from '../../config/axios';
 import AuthContext from '../../store/auth-context';
+import axios, { AxiosError } from 'axios';
 
 type TeamFormInput = Omit<ITeam, '_id'>;
+interface TeamFormResponse extends CustomResponse {
+  data: TeamFormInput;
+}
 
 export function AdminTeamFormPage() {
   const { accessToken } = useContext(AuthContext);
@@ -24,7 +28,7 @@ export function AdminTeamFormPage() {
       .required()
       .matches(
         /^([a-zA-Z0-9]+-)*[a-zA-Z0-9]+$/,
-        '${label} only accepts alphanumeric and dash'
+        '${label} only accepts alphanumeric connected by dash'
       )
       .lowercase()
       .label('Permalink'),
@@ -47,9 +51,19 @@ export function AdminTeamFormPage() {
 
         navigate('/admin/teams');
       } catch (error) {
-        // TODO: handler error the right way
-        alert('Error occurs when create team! check console for more details');
-        console.log('Create team Error', error);
+        if (axios.isAxiosError(error)) {
+          const formErrors = (error as AxiosError<TeamFormResponse>).response
+            ?.data?.data;
+          if (typeof formErrors !== 'undefined') {
+            setErrors({
+              name: formErrors.name,
+              shortName: formErrors.shortName,
+              permalink: formErrors.permalink,
+              flagIcon: formErrors.flagIcon,
+            });
+          }
+        }
+        // TODO: handle outbound errors
       }
     },
   });
@@ -63,6 +77,7 @@ export function AdminTeamFormPage() {
     touched,
     errors,
     setFieldValue,
+    setErrors,
   } = formik;
 
   const flagIconUploadDoneHandler = useCallback(
@@ -124,7 +139,7 @@ export function AdminTeamFormPage() {
                     `${constants.SITE_URL}/teams/${values.permalink}`}
                 </FormHelperText>
                 <FormHelperText>
-                  Permalink only accepts alphanumeric and dash
+                  Permalink only accepts alphanumeric connected by dash
                 </FormHelperText>
               </FormControl>
             </FormPart>

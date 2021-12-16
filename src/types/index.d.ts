@@ -18,3 +18,17 @@ interface ITeam extends IEntity {
   shortName: string;
   permalink: string;
 }
+
+interface CustomResponse {
+  message: string;
+  data: {
+    [dataName: string]: any;
+  };
+  name?: string;
+  stack?: string;
+}
+
+interface uploadDoneProps {
+  errorMsg: string;
+  filename: string;
+}

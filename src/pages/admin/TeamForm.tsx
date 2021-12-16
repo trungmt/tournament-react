@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormControl, TextField, FormHelperText, Stack } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -65,10 +65,12 @@ export function AdminTeamFormPage() {
     setFieldValue,
   } = formik;
 
-  const flagIconUploadDoneHandler = (filename: string) => {
-    console.log('filename', filename);
-    setFieldValue('flagIcon', filename);
-  };
+  const flagIconUploadDoneHandler = useCallback(
+    (filename: string) => {
+      setFieldValue('flagIcon', filename);
+    },
+    [setFieldValue]
+  );
   return (
     <AdminLayout>
       <AdminMainContent pageName="New Team" wrappedWithCard={false}>

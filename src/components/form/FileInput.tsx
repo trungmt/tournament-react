@@ -44,7 +44,6 @@ interface FlagIconUploadReject extends CustomResponse {
 function LinearProgressWithLabel(
   props: LinearProgressProps & {
     progress: number;
-    // onFileStopUpload(): void;
   }
 ) {
   return (
@@ -122,7 +121,8 @@ export default function FileInput({
     maxFiles,
     onDrop: () => {
       if (maxFiles === 1) {
-        fileStopUploadHandler(0);
+        console.log('fileStopUploadHandler');
+        fileStopUploadHandler();
       }
     },
     onDropAccepted: async acceptedFiles => {
@@ -179,7 +179,6 @@ export default function FileInput({
       rawResponses.forEach((rawResponse, rawResponseIndex) => {
         const findIndex = rawResponseIndex + currentFilesIndex;
         if (rawResponse.status === 'fulfilled') {
-          console.log('fulfilled');
           const returnFilename = (
             rawResponse.value as AxiosResponse<FlagIconUploadResponse>
           ).data.data.filename;
@@ -199,7 +198,6 @@ export default function FileInput({
           setFiles(prevState => {
             return prevState.map((file, index) => {
               if (index === findIndex && file.isSuspended === false) {
-                console.log('rejected');
                 const error = (
                   rawResponse.reason
                     .response as AxiosResponse<FlagIconUploadReject>
@@ -228,12 +226,16 @@ export default function FileInput({
     },
   });
 
-  const fileStopUploadHandler = (fileIndex: number) => {
-    console.log('fileStopUploadHandler');
+  const fileStopUploadHandler = (fileIndex?: number) => {
     setFiles(prevState => {
+      if (typeof fileIndex === 'undefined') {
+        fileIndex = prevState.length - 1; // if no fileIndex set, stop last file
+      }
       return prevState.map((file, index) => {
         if (index === fileIndex && file.isSuspended === false) {
           file.cancelToken.cancel();
+          URL.revokeObjectURL(file.preview);
+
           return { ...file, returnFilename: '', isSuspended: true };
         }
         return { ...file };

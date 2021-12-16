@@ -112,6 +112,7 @@ export default function FileInput({
             ? prepareUploadDoneFilenames[length - 1]
             : '';
       }
+      console.log('prepareUploadDoneFilenames', prepareUploadDoneFilenames);
       onUploadDone(prepareUploadDoneFilenames);
     }
   }, [files, maxFiles, onUploadDone]);
@@ -119,43 +120,36 @@ export default function FileInput({
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/jpeg, image/png, image/tiff, image/gif',
     maxFiles,
-    onDropAccepted: async acceptedFiles => {
-      const CancelToken = axios.CancelToken;
-      const source = CancelToken.source();
-      let newFiles: ImageFile[] = [];
-      let uploadFiles: File[] = acceptedFiles;
-      let currentFilesIndex: number = 0;
+    onDrop: () => {
       if (maxFiles === 1) {
-        const lastAcceptedFile = acceptedFiles[acceptedFiles.length - 1];
-        newFiles.push({
-          ...lastAcceptedFile,
-          returnFilename: '',
-          preview: URL.createObjectURL(lastAcceptedFile),
-          uploadProgress: 1,
-          isSuspended: false,
-          cancelToken: source,
-        });
-        uploadFiles = [lastAcceptedFile];
-        setFiles(newFiles);
-      } else {
-        newFiles = acceptedFiles.map(file => ({
+        fileStopUploadHandler(0);
+      }
+    },
+    onDropAccepted: async acceptedFiles => {
+      let newFiles: ImageFile[] = [];
+      let currentFilesIndex: number = files.length;
+
+      newFiles = acceptedFiles.map(file => {
+        const CancelToken = axios.CancelToken;
+        const source = CancelToken.source();
+        return {
           ...file,
           returnFilename: '',
           preview: URL.createObjectURL(file),
           uploadProgress: 1,
           isSuspended: false,
           cancelToken: source,
-        }));
-        currentFilesIndex = files.length;
-        setFiles(prevFiles => [...prevFiles, ...newFiles]);
-      }
+        };
+      });
+      setFiles(prevFiles => [...prevFiles, ...newFiles]);
 
-      const requests = uploadFiles.map((acceptedFile, acceptedFileIndex) => {
+      const requests = acceptedFiles.map((acceptedFile, acceptedFileIndex) => {
         const formData = new FormData();
+
         formData.append(fieldName, acceptedFile);
 
         const config: AxiosRequestConfig<FormData> = {
-          cancelToken: source.token,
+          cancelToken: newFiles[acceptedFileIndex].cancelToken.token,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -182,86 +176,45 @@ export default function FileInput({
 
       const rawResponses = await Promise.allSettled(requests);
       console.log('rawResponses', rawResponses);
-      if (maxFiles === 1) {
-        const status = rawResponses[0].status;
-        let filename: string = '';
-        if (status === 'fulfilled') {
-          filename = (
-            rawResponses[0].value as AxiosResponse<FlagIconUploadResponse>
+      rawResponses.forEach((rawResponse, rawResponseIndex) => {
+        const findIndex = rawResponseIndex + currentFilesIndex;
+        if (rawResponse.status === 'fulfilled') {
+          console.log('fulfilled');
+          const returnFilename = (
+            rawResponse.value as AxiosResponse<FlagIconUploadResponse>
           ).data.data.filename;
           setFiles(prevState => {
             return prevState.map((file, index) => {
-              if (index === 0 && file.isSuspended === false) {
-                file.cancelToken.cancel();
+              if (index === findIndex && file.isSuspended === false) {
                 return {
                   ...file,
-                  returnFilename: filename,
                   uploadProgress: 100,
+                  returnFilename,
                 };
               }
               return { ...file };
             });
           });
         } else {
-          const errorResponse = rawResponses[0].reason;
-          if (!axios.isCancel(errorResponse)) {
-            const errorMsg = (
-              errorResponse.response as AxiosResponse<FlagIconUploadReject>
-            ).data.data.flagIcon;
-            setFiles(prevState => {
-              return prevState.map((file, index) => {
-                if (index === 0 && file.isSuspended === false) {
-                  file.cancelToken.cancel();
-                  return { ...file, error: errorMsg, uploadProgress: 100 };
-                }
-                return { ...file };
-              });
+          setFiles(prevState => {
+            return prevState.map((file, index) => {
+              if (index === findIndex && file.isSuspended === false) {
+                console.log('rejected');
+                const error = (
+                  rawResponse.reason
+                    .response as AxiosResponse<FlagIconUploadReject>
+                ).data.data.flagIcon;
+                return {
+                  ...file,
+                  uploadProgress: 100,
+                  error,
+                };
+              }
+              return { ...file };
             });
-          }
+          });
         }
-        // onUploadDone(filename);
-      } else {
-        const responses: string[] = rawResponses.map(
-          (rawResponse, rawResponseIndex) => {
-            const findIndex = rawResponseIndex + currentFilesIndex;
-            if (rawResponse.status === 'fulfilled') {
-              const returnFilename = (
-                rawResponse.value as AxiosResponse<FlagIconUploadResponse>
-              ).data.data.filename;
-              setFiles(prevState => {
-                return prevState.map((file, index) => {
-                  if (index === findIndex && file.isSuspended === false) {
-                    return {
-                      ...file,
-                      uploadProgress: 100,
-                      returnFilename,
-                    };
-                  }
-                  return { ...file };
-                });
-              });
-            } else {
-              setFiles(prevState => {
-                return prevState.map((file, index) => {
-                  if (index === findIndex && file.isSuspended === false) {
-                    return {
-                      ...file,
-                      uploadProgress: 100,
-                      error: (
-                        rawResponse.reason
-                          .response as AxiosResponse<FlagIconUploadReject>
-                      ).data.data.flagIcon,
-                    };
-                  }
-                  return { ...file };
-                });
-              });
-            }
-
-            return '';
-          }
-        );
-      }
+      });
     },
     onDropRejected: rejectedFiles => {
       const errors: string[] = rejectedFiles.map(rejectedFile => {
@@ -276,6 +229,7 @@ export default function FileInput({
   });
 
   const fileStopUploadHandler = (fileIndex: number) => {
+    console.log('fileStopUploadHandler');
     setFiles(prevState => {
       return prevState.map((file, index) => {
         if (index === fileIndex && file.isSuspended === false) {

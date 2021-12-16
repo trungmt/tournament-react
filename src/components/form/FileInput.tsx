@@ -159,7 +159,7 @@ export default function FileInput({
               progressEvent.loaded / progressEvent.total;
             percentComplete = percentComplete * 100;
             if (percentComplete >= 100) {
-              percentComplete = 100;
+              percentComplete = 99;
             }
             setFiles(prevState => {
               const findIndex = acceptedFileIndex + currentFilesIndex;
@@ -185,9 +185,17 @@ export default function FileInput({
             rawResponses[0].value as AxiosResponse<FlagIconUploadResponse>
           ).data.data.filename;
           setFiles(prevState => {
-            const newFiles = prevState;
-            newFiles[0].returnFilename = filename;
-            return prevState;
+            return prevState.map((file, index) => {
+              if (index === 0 && file.isSuspended === false) {
+                file.cancelToken.cancel();
+                return {
+                  ...file,
+                  returnFilename: filename,
+                  uploadProgress: 100,
+                };
+              }
+              return { ...file };
+            });
           });
         } else {
           const errorResponse = rawResponses[0].reason;
@@ -196,9 +204,13 @@ export default function FileInput({
               errorResponse.response as AxiosResponse<FlagIconUploadReject>
             ).data.data.flagIcon;
             setFiles(prevState => {
-              const newFiles = prevState;
-              newFiles[0].error = errorMsg;
-              return prevState;
+              return prevState.map((file, index) => {
+                if (index === 0 && file.isSuspended === false) {
+                  file.cancelToken.cancel();
+                  return { ...file, error: errorMsg, uploadProgress: 100 };
+                }
+                return { ...file };
+              });
             });
           }
         }
@@ -216,6 +228,7 @@ export default function FileInput({
                   if (index === findIndex && file.isSuspended === false) {
                     return {
                       ...file,
+                      uploadProgress: 100,
                       returnFilename,
                     };
                   }
@@ -228,6 +241,7 @@ export default function FileInput({
                   if (index === findIndex && file.isSuspended === false) {
                     return {
                       ...file,
+                      uploadProgress: 100,
                       error: (
                         rawResponse.reason
                           .response as AxiosResponse<FlagIconUploadReject>

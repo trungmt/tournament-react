@@ -15,7 +15,6 @@ import { useFormik, Form, FormikProvider } from 'formik';
 import { SchemaOf, object, string } from 'yup';
 import AuthContext, { IAuthContextProps } from '../../store/auth-context';
 import { axiosAuthClient } from '../../config/axios';
-import constants from '../../config/constants';
 
 interface LoginFormInput {
   username: string;

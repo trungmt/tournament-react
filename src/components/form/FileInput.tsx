@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import {
   FormControl,
   LinearProgress,
@@ -91,25 +91,30 @@ export default function FileInput({
   const [files, setFiles] = useState<ImageFile[]>([]);
   const [filesErrors, setFilesErrors] = useState<string[]>([]);
 
-  const filesRef = useRef(files);
   useEffect(() => {
-    filesRef.current = files;
-  }, [files]);
-  const isAllFilesUploadDone = filesRef.current.every(
-    file => file.isSuspended === true || file.uploadProgress === 100
-  );
+    const isAllFilesUploadDone =
+      files.length > 0 &&
+      files.every(
+        file => file.isSuspended === true || file.uploadProgress === 100
+      );
 
-  const prepareUploadDoneFilenames = (): string | string[] => {
-    console.log('filesRef', filesRef.current);
-    const filenames = filesRef.current
-      .filter(file => file.isSuspended === false && file.returnFilename !== '')
-      .map(file => file.returnFilename);
+    if (isAllFilesUploadDone) {
+      let prepareUploadDoneFilenames: string | string[] = files
+        .filter(
+          file => file.isSuspended === false && file.returnFilename !== ''
+        )
+        .map(file => file.returnFilename);
 
-    if (maxFile === 1) {
-      return filenames.length > 0 ? filenames[filenames.length - 1] : '';
+      if (maxFiles === 1) {
+        const length = prepareUploadDoneFilenames.length;
+        prepareUploadDoneFilenames =
+          prepareUploadDoneFilenames.length > 0
+            ? prepareUploadDoneFilenames[length - 1]
+            : '';
+      }
+      onUploadDone(prepareUploadDoneFilenames);
     }
-    return filenames;
-  };
+  }, [files, maxFiles, onUploadDone]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/jpeg, image/png, image/tiff, image/gif',
@@ -257,11 +262,6 @@ export default function FileInput({
           }
         );
       }
-      if (isAllFilesUploadDone) {
-        const responses = prepareUploadDoneFilenames();
-        console.log('responses', responses);
-        onUploadDone(responses);
-      }
     },
     onDropRejected: rejectedFiles => {
       const errors: string[] = rejectedFiles.map(rejectedFile => {
@@ -280,17 +280,11 @@ export default function FileInput({
       return prevState.map((file, index) => {
         if (index === fileIndex && file.isSuspended === false) {
           file.cancelToken.cancel();
-          console.log('cancel');
           return { ...file, returnFilename: '', isSuspended: true };
         }
         return { ...file };
       });
     });
-    if (isAllFilesUploadDone) {
-      const responses = prepareUploadDoneFilenames();
-      console.log('responses', responses);
-      onUploadDone(responses);
-    }
   };
 
   const thumbs = files.map((file, index) => {

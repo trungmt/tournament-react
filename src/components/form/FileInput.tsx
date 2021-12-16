@@ -72,21 +72,21 @@ function LinearProgressWithLabel(
 }
 
 interface FileInputProps {
-  maxFile: number;
+  maxFiles: number;
   uploadUrl: string;
   fieldName: string;
   onUploadDone(responses: string | string[]): void;
 }
 
 export default function FileInput({
-  maxFile,
+  maxFiles,
   uploadUrl,
   fieldName,
   onUploadDone,
 }: FileInputProps) {
   const { accessToken } = useContext(AuthContext);
   const axiosAdminClient = axiosClient(accessToken);
-  const isMultiple: boolean = maxFile > 1;
+  const isMultiple: boolean = maxFiles > 1;
 
   const [files, setFiles] = useState<ImageFile[]>([]);
   const [filesErrors, setFilesErrors] = useState<string[]>([]);
@@ -113,14 +113,14 @@ export default function FileInput({
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/jpeg, image/png, image/tiff, image/gif',
-    maxFiles: 2,
+    maxFiles,
     onDropAccepted: async acceptedFiles => {
       const CancelToken = axios.CancelToken;
       const source = CancelToken.source();
       let newFiles: ImageFile[] = [];
       let uploadFiles: File[] = acceptedFiles;
       let currentFilesIndex: number = 0;
-      if (maxFile === 1) {
+      if (maxFiles === 1) {
         const lastAcceptedFile = acceptedFiles[acceptedFiles.length - 1];
         newFiles.push({
           ...lastAcceptedFile,
@@ -177,7 +177,7 @@ export default function FileInput({
 
       const rawResponses = await Promise.allSettled(requests);
       console.log('rawResponses', rawResponses);
-      if (maxFile === 1) {
+      if (maxFiles === 1) {
         const status = rawResponses[0].status;
         let filename: string = '';
         if (status === 'fulfilled') {

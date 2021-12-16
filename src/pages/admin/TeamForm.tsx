@@ -128,7 +128,7 @@ export function AdminTeamFormPage() {
             </FormPart>
             <FormPart formPartName="Flag Icon">
               <FileInput
-                maxFile={1}
+                maxFiles={1}
                 uploadUrl="/teams/upload/flagIcon"
                 fieldName="flagIcon"
                 onUploadDone={flagIconUploadDoneHandler}

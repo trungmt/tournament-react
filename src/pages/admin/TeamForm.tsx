@@ -1,5 +1,5 @@
-import { useContext, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext, useCallback, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FormControl, TextField, FormHelperText, Stack } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
@@ -13,8 +13,13 @@ import FileInput from '../../components/form/FileInput';
 import { axiosClient } from '../../config/axios';
 import AuthContext from '../../store/auth-context';
 import axios, { AxiosError } from 'axios';
+import { NotFoundPage } from '..';
+import FakeProgress from '../../components/ui/FakeProgress';
 
-type TeamFormInput = Omit<ITeam, '_id'>;
+type TeamFormInput = Omit<ITeam, '_id' | 'flagIcon'> & {
+  flagIconAdd: string;
+  flagIconDelete?: string;
+};
 interface TeamFormResponse extends CustomResponse {
   data: TeamFormInput;
 }
@@ -22,6 +27,50 @@ interface TeamFormResponse extends CustomResponse {
 export function AdminTeamFormPage() {
   const { accessToken } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { _id } = useParams();
+  const [teamInfo, setTeamInfo] = useState<ITeam>({
+    _id: '',
+    name: '',
+    permalink: '',
+    shortName: '',
+    flagIcon: '',
+  });
+
+  const [isTeamNotFound, setIsTeamNotFound] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+
+  const getTeam = useCallback(async (_id: string) => {
+    setIsFetching(true);
+    const axiosAdminClient = axiosClient(accessToken);
+    try {
+      const response = await axiosAdminClient.get<ITeam>(`/teams/${_id}`);
+      const { name, permalink, shortName, flagIcon } = response.data;
+      setTeamInfo({
+        _id,
+        name,
+        permalink,
+        shortName,
+        flagIcon,
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const { status } = (error as AxiosError<TeamFormResponse>).response!;
+
+        if (status === 404) {
+          setIsTeamNotFound(true);
+        }
+      }
+      // TODO: handle outbound errors
+    }
+    setIsFetching(false);
+  }, []);
+
+  useEffect(() => {
+    if (typeof _id !== 'undefined') {
+      getTeam(_id);
+    }
+  }, [_id, getTeam]);
+
   const TeamSchema: SchemaOf<TeamFormInput> = object({
     name: string().required().label('Team Name'),
     permalink: string()
@@ -33,21 +82,40 @@ export function AdminTeamFormPage() {
       .lowercase()
       .label('Permalink'),
     shortName: string().required().label('Short Name'),
-    flagIcon: string().required().label('Flag Icon'),
+    flagIconAdd: _id
+      ? string()
+          .defined()
+          .default('')
+          .label('Flag Icon')
+          .when('flagIconDelete', {
+            is: (flagIconDelete: string) => {
+              console.log('flagIconDelete', flagIconDelete);
+              return flagIconDelete !== '';
+            },
+            then: string().required(),
+            otherwise: string().defined(),
+          })
+      : string().required().label('Flag Icon'),
+    flagIconDelete: string().default(''),
   });
 
   const formik = useFormik<TeamFormInput>({
     initialValues: {
-      name: 'Team Liquid',
-      permalink: 'team-liquid',
-      shortName: 'Liquid',
-      flagIcon: '',
+      name: teamInfo.name,
+      shortName: teamInfo.shortName,
+      permalink: teamInfo.permalink,
+      flagIconAdd: '',
     },
     validationSchema: TeamSchema,
+    enableReinitialize: true,
     onSubmit: async teamForm => {
       const axiosAdminClient = axiosClient(accessToken);
       try {
-        await axiosAdminClient.post('/teams', teamForm);
+        if (_id) {
+          await axiosAdminClient.patch(`/teams/${_id}`, teamForm);
+        } else {
+          await axiosAdminClient.post('/teams', teamForm);
+        }
 
         navigate('/admin/teams');
       } catch (error) {
@@ -59,7 +127,7 @@ export function AdminTeamFormPage() {
               name: formErrors.name,
               shortName: formErrors.shortName,
               permalink: formErrors.permalink,
-              flagIcon: formErrors.flagIcon,
+              flagIconAdd: formErrors.flagIconAdd,
             });
           }
         }
@@ -80,15 +148,34 @@ export function AdminTeamFormPage() {
     setErrors,
   } = formik;
 
+  // console.log('errors', errors);
+
   const flagIconUploadDoneHandler = useCallback(
-    (filename: string) => {
-      setFieldValue('flagIcon', filename);
+    async (addFlagIcon: string, deleteFlagIcon: string) => {
+      await setFieldValue('flagIconAdd', addFlagIcon);
+      await setFieldValue('flagIconDelete', deleteFlagIcon);
     },
     [setFieldValue]
   );
+
+  if (typeof _id !== 'undefined' && isTeamNotFound) {
+    return (
+      <NotFoundPage
+        redirectUrl="/admin/teams"
+        redirectLabel="Back to team list"
+      />
+    );
+  }
+
+  if (isFetching) {
+    return <FakeProgress />;
+  }
   return (
     <AdminLayout>
-      <AdminMainContent pageName="New Team" wrappedWithCard={false}>
+      <AdminMainContent
+        pageName={_id ? 'Edit Team' : 'New Team'}
+        wrappedWithCard={false}
+      >
         <FormikProvider value={formik}>
           <Form onSubmit={handleSubmit}>
             <FormPart formPartName="Basic details">
@@ -148,11 +235,14 @@ export function AdminTeamFormPage() {
                 maxFiles={1}
                 uploadUrl="/teams/upload/flagIcon"
                 fieldName="flagIcon"
+                tempImageURL={`${constants.DEFAULT_BACKEND_URL}/temp/teams`}
+                realImageURL={`${constants.DEFAULT_BACKEND_URL}/teams`}
+                initialFiles={
+                  _id && teamInfo.flagIcon ? [teamInfo.flagIcon] : undefined
+                }
                 onUploadDone={flagIconUploadDoneHandler}
               />
-              <FormHelperText error>
-                {touched.flagIcon && errors.flagIcon}
-              </FormHelperText>
+              <FormHelperText error>{errors.flagIconAdd}</FormHelperText>
             </FormPart>
             <Stack flexDirection="row" justifyContent="flex-end" mb={2}>
               <LoadingButton
@@ -161,7 +251,7 @@ export function AdminTeamFormPage() {
                 size="large"
                 loading={isSubmitting}
               >
-                Create
+                {_id ? 'Edit' : 'Create'}
               </LoadingButton>
             </Stack>
           </Form>

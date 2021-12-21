@@ -17,7 +17,7 @@ interface MoreMenuProps {
   _id: string;
 }
 
-export default function MoreMenu(props: MoreMenuProps) {
+export default function MoreMenu({ _id }: MoreMenuProps) {
   const ref = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -39,6 +39,19 @@ export default function MoreMenu(props: MoreMenuProps) {
       >
         <MenuItem
           component={RouterLink}
+          to={`edit/${_id}`}
+          sx={{ color: 'text.secondary' }}
+        >
+          <ListItemIcon>
+            <EditIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary="Edit"
+            primaryTypographyProps={{ variant: 'body2' }}
+          />
+        </MenuItem>
+        <MenuItem
+          component={RouterLink}
           to="delete"
           sx={{ color: 'text.secondary' }}
         >
@@ -47,20 +60,6 @@ export default function MoreMenu(props: MoreMenuProps) {
           </ListItemIcon>
           <ListItemText
             primary="Delete"
-            primaryTypographyProps={{ variant: 'body2' }}
-          />
-        </MenuItem>
-
-        <MenuItem
-          component={RouterLink}
-          to="edit"
-          sx={{ color: 'text.secondary' }}
-        >
-          <ListItemIcon>
-            <EditIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Edit"
             primaryTypographyProps={{ variant: 'body2' }}
           />
         </MenuItem>

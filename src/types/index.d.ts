@@ -13,10 +13,10 @@ interface IEntity {
 }
 
 interface ITeam extends IEntity {
-  flagIcon: string;
   name: string;
   shortName: string;
   permalink: string;
+  flagIcon: string;
 }
 
 interface CustomResponse {

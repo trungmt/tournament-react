@@ -22,10 +22,11 @@ import { AxiosResponse } from 'axios';
 
 interface ImageFile extends File {
   preview: string;
+  isInit: boolean;
   returnFilename: string;
   uploadProgress: number;
   isSuspended: boolean;
-  cancelToken: CancelTokenSource;
+  cancelToken?: CancelTokenSource;
   error?: string;
 }
 
@@ -74,13 +75,22 @@ interface FileInputProps {
   maxFiles: number;
   uploadUrl: string;
   fieldName: string;
-  onUploadDone(responses: string | string[]): void;
+  tempImageURL: string;
+  realImageURL: string;
+  initialFiles?: string[];
+  onUploadDone(
+    addFiles: string | string[],
+    deleteFiles: string | string[]
+  ): void;
 }
 
 export default function FileInput({
   maxFiles,
   uploadUrl,
   fieldName,
+  tempImageURL,
+  realImageURL,
+  initialFiles,
   onUploadDone,
 }: FileInputProps) {
   const { accessToken } = useContext(AuthContext);
@@ -89,8 +99,12 @@ export default function FileInput({
 
   const [files, setFiles] = useState<ImageFile[]>([]);
   const [filesErrors, setFilesErrors] = useState<string[]>([]);
+  const [isDropped, setIsDropped] = useState<boolean>(
+    initialFiles ? false : true
+  );
 
   useEffect(() => {
+    if (!isDropped) return;
     const isAllFilesUploadDone =
       files.length > 0 &&
       files.every(
@@ -98,33 +112,51 @@ export default function FileInput({
       );
 
     if (isAllFilesUploadDone) {
-      let prepareUploadDoneFilenames: string | string[] = files
+      console.log('files', files);
+      let addFiles: string | string[] = files
         .filter(
           file => file.isSuspended === false && file.returnFilename !== ''
         )
         .map(file => file.returnFilename);
+      let deleteFiles: string | string[] = files
+        .filter(file => file.isSuspended === true && file.isInit === true)
+        .map(file => file.returnFilename);
 
       if (maxFiles === 1) {
-        const length = prepareUploadDoneFilenames.length;
-        prepareUploadDoneFilenames =
-          prepareUploadDoneFilenames.length > 0
-            ? prepareUploadDoneFilenames[length - 1]
-            : '';
+        const addFilesLength = addFiles.length;
+        addFiles = addFiles.length > 0 ? addFiles[addFilesLength - 1] : '';
+
+        const deleteFilesLength = deleteFiles.length;
+        deleteFiles =
+          deleteFiles.length > 0 ? deleteFiles[deleteFilesLength - 1] : '';
       }
-      console.log('prepareUploadDoneFilenames', prepareUploadDoneFilenames);
-      onUploadDone(prepareUploadDoneFilenames);
+      console.log('addFiles', addFiles);
+      console.log('deleteFiles', deleteFiles);
+      onUploadDone(addFiles, deleteFiles);
     }
-  }, [files, maxFiles, onUploadDone]);
+  }, [files, isDropped, maxFiles, onUploadDone]);
+
+  useEffect(() => {
+    if (isDropped === false && initialFiles) {
+      const files = initialFiles.map(filename => {
+        const fileObject = new File([], filename);
+        return {
+          ...fileObject,
+          isInit: true,
+          returnFilename: filename,
+          preview: `${realImageURL}/${filename}`,
+          uploadProgress: 100,
+          isSuspended: false,
+        };
+      });
+      setFiles(files);
+    }
+  }, [isDropped, initialFiles, realImageURL]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: 'image/jpeg, image/png, image/tiff, image/gif',
     maxFiles,
-    onDrop: () => {
-      if (maxFiles === 1) {
-        console.log('fileStopUploadHandler');
-        fileStopUploadHandler();
-      }
-    },
+    onDrop: () => {},
     onDropAccepted: async acceptedFiles => {
       let newFiles: ImageFile[] = [];
       let currentFilesIndex: number = files.length;
@@ -135,6 +167,7 @@ export default function FileInput({
         return {
           ...file,
           returnFilename: '',
+          isInit: false,
           preview: URL.createObjectURL(file),
           uploadProgress: 1,
           isSuspended: false,
@@ -142,14 +175,18 @@ export default function FileInput({
         };
       });
       setFiles(prevFiles => [...prevFiles, ...newFiles]);
-
+      if (maxFiles === 1) {
+        console.log('fileStopUploadHandler');
+        fileStopUploadHandler(files.length - 1);
+      }
+      setIsDropped(true);
       const requests = acceptedFiles.map((acceptedFile, acceptedFileIndex) => {
         const formData = new FormData();
 
         formData.append(fieldName, acceptedFile);
 
         const config: AxiosRequestConfig<FormData> = {
-          cancelToken: newFiles[acceptedFileIndex].cancelToken.token,
+          cancelToken: newFiles[acceptedFileIndex].cancelToken!.token,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -185,10 +222,12 @@ export default function FileInput({
           setFiles(prevState => {
             return prevState.map((file, index) => {
               if (index === findIndex && file.isSuspended === false) {
+                URL.revokeObjectURL(file.preview);
                 return {
                   ...file,
                   uploadProgress: 100,
                   returnFilename,
+                  preview: `${tempImageURL}/${returnFilename}`,
                 };
               }
               return { ...file };
@@ -227,16 +266,18 @@ export default function FileInput({
   });
 
   const fileStopUploadHandler = (fileIndex?: number) => {
+    setIsDropped(true);
     setFiles(prevState => {
-      if (typeof fileIndex === 'undefined') {
-        fileIndex = prevState.length - 1; // if no fileIndex set, stop last file
-      }
       return prevState.map((file, index) => {
         if (index === fileIndex && file.isSuspended === false) {
-          file.cancelToken.cancel();
-          URL.revokeObjectURL(file.preview);
+          if (file.cancelToken) {
+            file.cancelToken!.cancel();
+          }
+          if (file.uploadProgress < 100) {
+            URL.revokeObjectURL(file.preview);
+          }
 
-          return { ...file, returnFilename: '', isSuspended: true };
+          return { ...file, isSuspended: true };
         }
         return { ...file };
       });
@@ -263,7 +304,10 @@ export default function FileInput({
             {file.error ? (
               <FormHelperText error>{file.error}</FormHelperText>
             ) : (
-              <LinearProgressWithLabel progress={file.uploadProgress} />
+              <LinearProgressWithLabel
+                progress={file.uploadProgress}
+                sx={file.isInit ? { visibility: 'hidden' } : {}}
+              />
             )}
 
             <Box sx={{ minWidth: 35, marginLeft: 'auto' }}>

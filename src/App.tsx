@@ -6,6 +6,8 @@ import {
   RegisterPage,
   AdminTopPage,
   AdminTeamListPage,
+  AdminTeamFormPage,
+  NotFoundPage,
 } from './pages/index';
 import { RequireAuth } from './components/index';
 import ThemeConfig from './theme';
@@ -41,7 +43,24 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="*" element={<div>404 not found</div>} />
+        <Route
+          path="/admin/teams/add"
+          element={
+            <RequireAuth>
+              <AdminTeamFormPage />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/admin/teams/edit/:_id"
+          element={
+            <RequireAuth>
+              <AdminTeamFormPage />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeConfig>
   );

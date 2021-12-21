@@ -7,3 +7,28 @@ interface PaginationResult<T = any> {
   previous: number | null;
   next: number | null;
 }
+
+interface IEntity {
+  _id: string;
+}
+
+interface ITeam extends IEntity {
+  name: string;
+  shortName: string;
+  permalink: string;
+  flagIcon: string;
+}
+
+interface CustomResponse {
+  message: string;
+  data: {
+    [dataName: string]: any;
+  };
+  name?: string;
+  stack?: string;
+}
+
+interface uploadDoneProps {
+  errorMsg: string;
+  filename: string;
+}

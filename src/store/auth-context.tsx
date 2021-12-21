@@ -5,9 +5,9 @@ import {
   PropsWithChildren,
   useCallback,
 } from 'react';
-
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import constants from '../config/constants';
+import { axiosAuthClient } from '../config/axios';
 
 interface IUser {
   name: string;
@@ -58,22 +58,20 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch(`${constants.AUTH_URL}/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.status === 401) {
-        setAuth(initialAuthState.user, initialAuthState.accessToken, true);
-        navigate('/admin/login');
-        return;
-      }
-
-      const { user, accessToken }: IAuthContextProps = await response.json();
-      console.log('new token', accessToken);
+      const response = await axiosAuthClient.post<IAuthContextProps>(
+        '/refresh'
+      );
+      const { user, accessToken } = response.data;
       setAuth(user, accessToken);
     } catch (error) {
-      console.log(typeof error);
+      if (axios.isAxiosError(error)) {
+        if ((error as AxiosError).response?.status === 401) {
+          setAuth(initialAuthState.user, initialAuthState.accessToken, true);
+          navigate('/admin/login');
+          return;
+        }
+        // TODO: make error page to handle other errors
+      }
     }
   }, [navigate]);
 

@@ -3,16 +3,9 @@ import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 import { AdminLayout, AdminMainContent } from '../../components';
 import { HeadCell } from '../../components/table/EnhancedTableHead';
-import { EnhancedTable, IEntity } from '../../components/table/EnhancedTable';
+import { EnhancedTable } from '../../components/table/EnhancedTable';
 import { Stack } from '@mui/material';
 import constants from '../../config/constants';
-
-interface ITeam extends IEntity {
-  flagIcon: string;
-  name: string;
-  shortName: string;
-  permalink: string;
-}
 
 const headCells: readonly HeadCell[] = [
   {
@@ -47,7 +40,7 @@ const displayRowsHandler = (row: ITeam): JSX.Element => {
       <TableCell component="th" scope="row" align="left">
         <Stack direction="row" alignItems="center" spacing={2}>
           <img
-            src={`${constants.DEFAULT_URL}/teams/${row.flagIcon}`}
+            src={`${constants.DEFAULT_BACKEND_URL}/teams/${row.flagIcon}`}
             width="30"
             alt={row.name}
           />
